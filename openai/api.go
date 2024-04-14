@@ -1,32 +1,33 @@
-package main
+package openai
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"github.com/easeaico/easeway/config"
 	"github.com/labstack/echo/v4"
 	"github.com/sashabaranov/go-openai"
 )
 
-type chatCompletionHandler struct {
+type OpenAIClient struct {
 	client *openai.Client
 }
 
-func newChatCompletionHandler(conf *Config) *chatCompletionHandler {
-	return &chatCompletionHandler{
-		client: openai.NewClient(conf.OpenAI.Token),
+func NewOpenAIClient(conf *config.Config) *OpenAIClient {
+	return &OpenAIClient{
+		client: openai.NewClient(conf.OpenAI.ApiKey),
 	}
 }
 
-func (h *chatCompletionHandler) HandleCompletions(c echo.Context) error {
+func (o *OpenAIClient) Handle(c echo.Context) error {
 	req := openai.ChatCompletionRequest{}
 	if err := c.Bind(&req); err != nil {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
 
 	ctx := c.Request().Context()
-	stream, err := h.client.CreateChatCompletionStream(ctx, req)
+	stream, err := o.client.CreateChatCompletionStream(ctx, req)
 	if err != nil {
 		return err
 	}

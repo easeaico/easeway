@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"log"
@@ -8,13 +8,11 @@ import (
 )
 
 type OpenAI struct {
-	Token string `yaml:"token"`
+	ApiKey string `yaml:"api_key"`
 }
 
-type Azure struct {
-	ModelMapping map[string]string `yaml:"model-mapping"`
-	Key          string            `yaml:"key"`
-	Endpoint     string            `yaml:"endpoint"`
+type Gemini struct {
+	ApiKey string `yaml:"api_key"`
 }
 
 type Server struct {
@@ -23,8 +21,7 @@ type Server struct {
 }
 
 type Config struct {
-	Azure  Azure  `yaml:"azure"`
-	Mode   string `yaml:"mode"`
+	Gemini Gemini `yaml:"gemini"`
 	OpenAI OpenAI `yaml:"openai"`
 	Server Server `yaml:"server"`
 }
