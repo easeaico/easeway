@@ -23,10 +23,11 @@ type Server struct {
 type Config struct {
 	Gemini Gemini `yaml:"gemini"`
 	OpenAI OpenAI `yaml:"openai"`
+	DBFile string `yaml:"db_file"`
 	Server Server `yaml:"server"`
 }
 
-func NewConfig(path string) Config {
+func NewConfig(path string) *Config {
 	var config Config
 
 	data, err := os.ReadFile(path)
@@ -39,5 +40,5 @@ func NewConfig(path string) Config {
 		log.Fatalf("Error unmarshalling YAML data: %s", err)
 	}
 
-	return config
+	return &config
 }

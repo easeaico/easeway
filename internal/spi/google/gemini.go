@@ -1,4 +1,4 @@
-package gemini
+package google
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	gl "cloud.google.com/go/ai/generativelanguage/apiv1beta"
 	pb "cloud.google.com/go/ai/generativelanguage/apiv1beta/generativelanguagepb"
-	"github.com/easeaico/easeway/config"
+	"github.com/easeaico/easeway/internal/config"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/api/option"
 )
