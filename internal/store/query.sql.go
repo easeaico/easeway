@@ -9,17 +9,101 @@ import (
 	"context"
 )
 
-const getAPIKey = `-- name: GetAPIKey :one
-SELECT id, user_id, api_key, spend, status, created_at, updated_at, deleted_at FROM api_keys WHERE api_key = ? AND deleted_at IS NULL LIMIT 1
+const createAPIKey = `-- name: CreateAPIKey :one
+INSERT INTO api_keys (
+  user_id, name, key
+) VALUES (
+  $1, $2, $3
+)
+RETURNING id, user_id, name, key, spend, status, created_at, updated_at, deleted_at
 `
 
-func (q *Queries) GetAPIKey(ctx context.Context, apiKey string) (ApiKey, error) {
-	row := q.db.QueryRowContext(ctx, getAPIKey, apiKey)
+type CreateAPIKeyParams struct {
+	UserID int64
+	Name   string
+	Key    string
+}
+
+func (q *Queries) CreateAPIKey(ctx context.Context, arg CreateAPIKeyParams) (ApiKey, error) {
+	row := q.db.QueryRow(ctx, createAPIKey, arg.UserID, arg.Name, arg.Key)
 	var i ApiKey
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.ApiKey,
+		&i.Name,
+		&i.Key,
+		&i.Spend,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const createOutcome = `-- name: CreateOutcome :one
+INSERT INTO outcomes (
+  user_id, key_id, prompt_tokens, completion_tokens, total_tokens, rt, fee_rate, cost
+) VALUES (
+  $1, $2, $3, $4, $5, $6, $7, $8
+)
+RETURNING id, user_id, key_id, prompt_tokens, completion_tokens, total_tokens, fee_rate, cost, rt, created_at, updated_at, deleted_at
+`
+
+type CreateOutcomeParams struct {
+	UserID           int64
+	KeyID            int64
+	PromptTokens     int32
+	CompletionTokens int32
+	TotalTokens      int32
+	Rt               int32
+	FeeRate          int32
+	Cost             int32
+}
+
+func (q *Queries) CreateOutcome(ctx context.Context, arg CreateOutcomeParams) (Outcome, error) {
+	row := q.db.QueryRow(ctx, createOutcome,
+		arg.UserID,
+		arg.KeyID,
+		arg.PromptTokens,
+		arg.CompletionTokens,
+		arg.TotalTokens,
+		arg.Rt,
+		arg.FeeRate,
+		arg.Cost,
+	)
+	var i Outcome
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.KeyID,
+		&i.PromptTokens,
+		&i.CompletionTokens,
+		&i.TotalTokens,
+		&i.FeeRate,
+		&i.Cost,
+		&i.Rt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const getAPIKey = `-- name: GetAPIKey :one
+SELECT id, user_id, name, key, spend, status, created_at, updated_at, deleted_at FROM api_keys 
+WHERE key = $1 AND deleted_at IS NULL 
+LIMIT 1
+`
+
+func (q *Queries) GetAPIKey(ctx context.Context, key string) (ApiKey, error) {
+	row := q.db.QueryRow(ctx, getAPIKey, key)
+	var i ApiKey
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.Key,
 		&i.Spend,
 		&i.Status,
 		&i.CreatedAt,

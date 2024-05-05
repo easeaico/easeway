@@ -1,9 +1,23 @@
 version: "2"
 sql:
-  - engine: "sqlite"
+  - engine: "postgresql"
     queries: "sql/query.sql"
     schema: "sql/schema.sql"
     gen:
       go:
         package: "store"
+        sql_package: "pgx/v5"
         out: "internal/store/"
+        # emit_json_tags: true
+        # emit_interface: true
+        # emit_empty_slices: true
+        overrides:
+          - db_type: "uuid"
+            go_type: "github.com/google/uuid.UUID"
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+          - db_type: "vector"
+            go_type:
+              import: "github.com/pgvector/pgvector-go"
+              package: "pgvector"
+              type: "Vector"

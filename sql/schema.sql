@@ -1,46 +1,50 @@
 -- users 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     "id" bigserial PRIMARY KEY,
     "email" varchar(255) NOT NULL,
-    "amount" int NOT NULL DEFAULT 0,
-    "login_token" varchar(512) NOT NULL,
-    "created_at" timestamptz NOT NULL DEFAULT TIME('now'),
-    "updated_at" timestamptz NOT NULL DEFAULT TIME('now'),
+    "amount" integer NOT NULL DEFAULT 0,
+    "session_id" varchar(512) NOT NULL,
+    "created_at" timestamptz NOT NULL DEFAULT now(),
+    "updated_at" timestamptz NOT NULL DEFAULT now(),
     "deleted_at" timestamptz
 );
 
 -- api keys 
-CREATE TABLE api_keys (
+CREATE TABLE IF NOT EXISTS api_keys (
     "id" bigserial PRIMARY KEY,
     "user_id" bigint NOT NULL,
-    "api_key" varchar(512) NOT NULL,
-    "spend" int NOT NULL DEFAULT 0,
+    "name" varchar(255) NOT NULL,
+    "key" varchar(512) NOT NULL,
+    "spend" integer NOT NULL DEFAULT 0,
     "status" smallint NOT NULL DEFAULT 0,
-    "created_at" timestamptz NOT NULL DEFAULT TIME('now'),
-    "updated_at" timestamptz NOT NULL DEFAULT TIME('now'),
+    "created_at" timestamptz NOT NULL DEFAULT now(),
+    "updated_at" timestamptz NOT NULL DEFAULT now(),
     "deleted_at" timestamptz
 );
 
 -- account incomes
-CREATE TABLE account_incomes (
+CREATE TABLE IF NOT EXISTS incomes (
     "id" bigserial PRIMARY KEY,
     "user_id" bigint NOT NULL,
     "recharge_type" smallint  NOT NULL,
-    "recharge_value" int  NOT NULL,
-    "created_at" timestamptz NOT NULL DEFAULT TIME('now'),
-    "updated_at" timestamptz NOT NULL DEFAULT TIME('now'),
+    "recharge_value" integer  NOT NULL,
+    "created_at" timestamptz NOT NULL DEFAULT now(),
+    "updated_at" timestamptz NOT NULL DEFAULT now(),
     "deleted_at" timestamptz
 );
 
--- account incomes
-CREATE TABLE account_outcomes (
+-- account outcomes
+CREATE TABLE IF NOT EXISTS outcomes (
     "id" bigserial PRIMARY KEY,
     "user_id" bigint NOT NULL,
-    "api_key" bigint  NOT NULL,
-    "tokens" int  NOT NULL,
-    "fee_rate" int  NOT NULL,
-    "cost" int  NOT NULL,
-    "created_at" timestamptz NOT NULL DEFAULT TIME('now'),
-    "updated_at" timestamptz NOT NULL DEFAULT TIME('now'),
+    "key_id" bigint NOT NULL,
+    "prompt_tokens" integer NOT NULL,
+    "completion_tokens" integer NOT NULL,
+    "total_tokens" integer NOT NULL,
+    "fee_rate" integer NOT NULL,
+    "cost" integer NOT NULL,
+    "rt" integer NOT NULL,
+    "created_at" timestamptz NOT NULL DEFAULT now(),
+    "updated_at" timestamptz NOT NULL DEFAULT now(),
     "deleted_at" timestamptz
 );

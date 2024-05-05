@@ -21,10 +21,10 @@ type Server struct {
 }
 
 type Config struct {
-	Gemini Gemini `yaml:"gemini"`
-	OpenAI OpenAI `yaml:"openai"`
-	DBFile string `yaml:"db_file"`
-	Server Server `yaml:"server"`
+	Gemini       Gemini `yaml:"gemini"`
+	OpenAI       OpenAI `yaml:"openai"`
+	DBConnection string `yaml:"db_connection"`
+	Server       Server `yaml:"server"`
 }
 
 func NewConfig(path string) *Config {

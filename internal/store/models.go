@@ -4,45 +4,55 @@
 
 package store
 
-type AccountIncome struct {
-	ID            interface{}
-	UserID        int64
-	RechargeType  int64
-	RechargeValue int64
-	CreatedAt     interface{}
-	UpdatedAt     interface{}
-	DeletedAt     interface{}
-}
+import (
+	"time"
 
-type AccountOutcome struct {
-	ID        interface{}
-	UserID    int64
-	ApiKey    int64
-	Tokens    int64
-	FeeRate   int64
-	Cost      int64
-	CreatedAt interface{}
-	UpdatedAt interface{}
-	DeletedAt interface{}
-}
+	"github.com/jackc/pgx/v5/pgtype"
+)
 
 type ApiKey struct {
-	ID        interface{}
+	ID        int64
 	UserID    int64
-	ApiKey    string
-	Spend     int64
-	Status    int64
-	CreatedAt interface{}
-	UpdatedAt interface{}
-	DeletedAt interface{}
+	Name      string
+	Key       string
+	Spend     int32
+	Status    int16
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt pgtype.Timestamptz
+}
+
+type Income struct {
+	ID            int64
+	UserID        int64
+	RechargeType  int16
+	RechargeValue int32
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DeletedAt     pgtype.Timestamptz
+}
+
+type Outcome struct {
+	ID               int64
+	UserID           int64
+	KeyID            int64
+	PromptTokens     int32
+	CompletionTokens int32
+	TotalTokens      int32
+	FeeRate          int32
+	Cost             int32
+	Rt               int32
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        pgtype.Timestamptz
 }
 
 type User struct {
-	ID         interface{}
-	Email      string
-	Amount     int64
-	LoginToken string
-	CreatedAt  interface{}
-	UpdatedAt  interface{}
-	DeletedAt  interface{}
+	ID        int64
+	Email     string
+	Amount    int32
+	SessionID string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt pgtype.Timestamptz
 }
