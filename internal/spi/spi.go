@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/easeaico/easeway/internal/config"
-	openaiapi "github.com/easeaico/easeway/internal/spi/openai"
+	"github.com/easeaico/easeway/internal/spi/googleapi"
+	"github.com/easeaico/easeway/internal/spi/openaiapi"
 	"github.com/sashabaranov/go-openai"
 )
 
@@ -27,9 +28,12 @@ type SPIRegistry struct {
 
 func NewSPIRegistry(conf *config.Config) *SPIRegistry {
 	openaiAPI := openaiapi.NewOpenAIClient(conf)
+	geminiAPI := googleapi.NewGenerativeAIClient(conf)
+
 	providers := map[string]ModelSPI{
 		openai.GPT4TurboPreview: openaiAPI,
 		openai.GPT4Turbo0125:    openaiAPI,
+		"google/gemini-pro":     geminiAPI,
 	}
 	return &SPIRegistry{
 		conf:      conf,

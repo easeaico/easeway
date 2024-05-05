@@ -1,4 +1,4 @@
-package google
+package googleapi
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	pb "cloud.google.com/go/ai/generativelanguage/apiv1beta/generativelanguagepb"
 	"github.com/easeaico/easeway/internal/config"
 	"github.com/labstack/echo/v4"
+	"github.com/sashabaranov/go-openai"
 	"google.golang.org/api/option"
 )
 
@@ -27,6 +28,20 @@ func NewGenerativeAIClient(conf *config.Config) *GenerativeAIClient {
 	return &GenerativeAIClient{
 		client: client,
 	}
+}
+
+func (g *GenerativeAIClient) CreateChatCompletionStream(
+	ctx context.Context,
+	request *openai.ChatCompletionRequest,
+) (stream *openai.ChatCompletionStream, err error) {
+	return nil, nil
+}
+
+func (g *GenerativeAIClient) CreateChatCompletion(
+	ctx context.Context,
+	request *openai.ChatCompletionRequest,
+) (response *openai.ChatCompletionResponse, err error) {
+	return nil, nil
 }
 
 func (g *GenerativeAIClient) Handle(c echo.Context) error {
