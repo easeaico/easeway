@@ -2,29 +2,26 @@ package googleapi
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"encoding/base64"
 	"log"
-	"net/http"
+	"strings"
 
-	gl "cloud.google.com/go/ai/generativelanguage/apiv1beta"
-	pb "cloud.google.com/go/ai/generativelanguage/apiv1beta/generativelanguagepb"
 	"github.com/easeaico/easeway/internal/config"
-	"github.com/labstack/echo/v4"
+	"github.com/google/generative-ai-go/genai"
 	"github.com/sashabaranov/go-openai"
 	"google.golang.org/api/option"
 )
 
 type GenerativeAIClient struct {
-	client *gl.GenerativeClient
+	client *genai.Client
 }
 
-func NewGenerativeAIClient(conf *config.Config) *GenerativeAIClient {
-	ctx := context.Background()
-	client, err := gl.NewGenerativeRESTClient(ctx, option.WithAPIKey(conf.Gemini.ApiKey))
+func NewGenerativeAIClient(ctx context.Context, conf *config.Config) *GenerativeAIClient {
+	client, err := genai.NewClient(ctx, option.WithAPIKey(conf.Gemini.ApiKey))
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return &GenerativeAIClient{
 		client: client,
 	}
@@ -32,57 +29,117 @@ func NewGenerativeAIClient(conf *config.Config) *GenerativeAIClient {
 
 func (g *GenerativeAIClient) CreateChatCompletionStream(
 	ctx context.Context,
-	request *openai.ChatCompletionRequest,
-) (stream *openai.ChatCompletionStream, err error) {
-	return nil, nil
+	req *openai.ChatCompletionRequest,
+) (*openai.ChatCompletionStream, error) {
+	model := g.client.GenerativeModel(req.Model)
+	cs := model.StartChat()
+	histories, err := convertHistories(req.Messages)
+	if err != nil {
+		return nil, err
+	}
+	cs.History = histories
+
+	_ = cs.SendMessageStream(ctx)
+	stream := &openai.ChatCompletionStream{}
+	return stream, nil
 }
 
 func (g *GenerativeAIClient) CreateChatCompletion(
 	ctx context.Context,
-	request *openai.ChatCompletionRequest,
-) (response *openai.ChatCompletionResponse, err error) {
-	return nil, nil
-}
+	req *openai.ChatCompletionRequest,
+) (*openai.ChatCompletionResponse, error) {
+	model := g.client.GenerativeModel(req.Model)
+	cs := model.StartChat()
 
-func (g *GenerativeAIClient) Handle(c echo.Context) error {
-	modelName := c.Param("modelName")
-	ctx := c.Request().Context()
-
-	req := &pb.GenerateContentRequest{}
-	if err := c.Bind(req); err != nil {
-		return fmt.Errorf("parase content request error: %w", err)
-	}
-	req.Model = modelName
-	stream, err := g.client.StreamGenerateContent(c.Request().Context(), req)
+	histories, err := convertHistories(req.Messages)
 	if err != nil {
-		return fmt.Errorf("stream generate content error: %w", err)
+		return nil, err
+	}
+	cs.History = histories
+
+	resp, err := cs.SendMessage(ctx)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	r := c.Response()
-	r.Header().Set(echo.HeaderContentType, "text/event-stream")
-	r.WriteHeader(http.StatusOK)
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			resp, err := stream.Recv()
-			if err != nil {
-				return err
-			}
-
-			data, err := json.Marshal(resp)
-			if err != nil {
-				return err
-			}
-
-			fmt.Fprintf(r, "data: %s\n\n", string(data))
-			r.Flush()
+	var (
+		completionTokens int
+		choices          []openai.ChatCompletionChoice
+	)
+	for _, c := range resp.Candidates {
+		role := c.Content.Role
+		if role == "model" {
+			role = openai.ChatMessageRoleAssistant
 		}
+
+		content := c.Content.Parts[0].(genai.Text)
+		msg := openai.ChatCompletionMessage{
+			Role:    role,
+			Content: string(content),
+		}
+		choice := openai.ChatCompletionChoice{
+			Index:        0,
+			Message:      msg,
+			FinishReason: "",
+			LogProbs:     &openai.LogProbs{},
+		}
+		choices = append(choices, choice)
 	}
+
+	sresp := openai.ChatCompletionResponse{
+		Model:   req.Model,
+		Choices: choices,
+		Usage: openai.Usage{
+			CompletionTokens: completionTokens,
+		},
+	}
+	return &sresp, nil
 }
 
 func (g *GenerativeAIClient) Close() error {
 	return g.client.Close()
+}
+
+func convertHistories(messages []openai.ChatCompletionMessage) ([]*genai.Content, error) {
+	var histories []*genai.Content
+	for _, msg := range messages {
+		role := msg.Role
+		if role == openai.ChatMessageRoleAssistant {
+			role = "model"
+		}
+
+		history := genai.Content{
+			Role: role,
+		}
+		if len(msg.Content) > 0 {
+			history.Parts = []genai.Part{
+				genai.Text(msg.Content),
+			}
+		} else if len(msg.MultiContent) > 0 {
+			var parts []genai.Part
+			for _, mc := range msg.MultiContent {
+				var part genai.Part
+				switch mc.Type {
+				case openai.ChatMessagePartTypeText:
+					part = genai.Text(mc.Text)
+				case openai.ChatMessagePartTypeImageURL:
+					data := mc.ImageURL.URL
+					datas := strings.Split(data, ";")
+					imgData := datas[1][7:]
+					img, err := base64.StdEncoding.DecodeString(imgData)
+					if err != nil {
+						return nil, err
+					}
+					part = genai.ImageData(datas[0][12:], img)
+				}
+
+				parts = append(parts, part)
+			}
+			history.Parts = parts
+		}
+
+		histories = append(histories, &history)
+	}
+
+	return histories, nil
 }

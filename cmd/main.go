@@ -9,6 +9,7 @@ import (
 	"github.com/easeaico/easeway/internal/config"
 	"github.com/easeaico/easeway/internal/handlers"
 	"github.com/easeaico/easeway/internal/spi"
+	"github.com/easeaico/easeway/internal/spi/googleapi"
 	"github.com/easeaico/easeway/internal/store"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -22,18 +23,27 @@ func main() {
 	conf := config.NewConfig(confFile)
 
 	ctx := context.Background()
+
+	spis := spi.NewSPIRegistry(conf)
+	gemini := googleapi.NewGenerativeAIClient(ctx, conf)
+	spis.AddModelSPI("gemini-1.0-pro", gemini)
+
 	pool := store.NewDBTX(ctx, conf)
 	defer pool.Close()
-
 	queries := store.New(pool)
-	spis := spi.NewSPIRegistry(conf)
+
+	homeHandler := handlers.NewHomeHandler()
 	apiHandler := handlers.NewAPISvcHandler(spis, queries)
 	keyHandler := handlers.NewAPIKeyHandler(queries)
+	userHandler := handlers.NewUserHandler(conf, queries)
 
 	e := echo.New()
+	e.Static("/assets", "assets")
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
+	e.GET("/", homeHandler.HomePage)
 	e.POST("/generate_key", keyHandler.GenerateNewKey)
 
 	v1 := e.Group("/v1", middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
@@ -48,6 +58,11 @@ func main() {
 		return apiKey.Status == 0, nil
 	}))
 	v1.POST("/chat/completions", apiHandler.CreateChatCompletion)
+
+	user := e.Group("/user")
+	user.GET("/login", userHandler.LoginPage)
+	user.POST("/do_login", userHandler.DoLogin)
+	user.GET("/send_verification", userHandler.SendVerificationCode)
 
 	err := e.Start(fmt.Sprintf("%s:%d", conf.Server.IP, conf.Server.Port))
 	if err != nil {

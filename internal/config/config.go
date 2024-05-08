@@ -20,7 +20,15 @@ type Server struct {
 	Port int    `yaml:"port"`
 }
 
+type Email struct {
+	Subject      string `yaml:"subject"`
+	From         string `yaml:"from"`
+	Pass         string `yaml:"pass"`
+	ProviderHost string `yaml:"provider_host"`
+	ProviderPort int    `yaml:"provider_port"`
+}
 type Config struct {
+	Email        Email  `yaml:"email"`
 	Gemini       Gemini `yaml:"gemini"`
 	OpenAI       OpenAI `yaml:"openai"`
 	DBConnection string `yaml:"db_connection"`
