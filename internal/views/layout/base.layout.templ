@@ -11,101 +11,27 @@ templ Base(title string) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<meta name="description" content="Bootstrap 5 Template For SaaS Businesses"/>
 			<meta name="author" content="Xiaoying Riley at 3rd Wave Media"/>
-			<link rel="shortcut icon" href="favicon.ico"/>
+			<link rel="shortcut icon" href="/favicon.ico"/>
 			<!-- Google Font -->
 			<link href="https://fonts.googleapis.com/css?family=DM+Sans:400,500,700&display=swap" rel="stylesheet"/>
 			<!-- FontAwesome JS-->
-			<script defer src="assets/fontawesome/js/all.min.js"></script>
+			<script defer src="/assets/fontawesome/js/all.min.js"></script>
+			<!-- HTMX JS-->
+			<script src="https://unpkg.com/htmx.org@1.9.9" integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX" crossorigin="anonymous"></script>
+			<script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 			<!-- Plugins CSS -->
-			<link rel="stylesheet" href="assets/plugins/tiny-slider/tiny-slider.css"/>
-			<link rel="stylesheet" href="assets/dripicons/webfont/webfont.css"/>
+			<link rel="stylesheet" href="/assets/plugins/tiny-slider/tiny-slider.css"/>
+			<link rel="stylesheet" href="/assets/dripicons/webfont/webfont.css"/>
 			<!-- Theme CSS -->
-			<link id="theme-style" rel="stylesheet" href="assets/css/theme.css"/>
+			<link id="theme-style" rel="stylesheet" href="/assets/css/theme.css"/>
 		</head>
 		<body>
-			<div class="hero-wrapper">
-				<div class="curve-container">
-					<div class="curve-top"></div>
-					<div class="curve-bottom"></div>
-				</div><!--//curve-container-->
-				<header class="header">
-					<div class="branding">
-						<div class="container">
-							<nav class="navbar navbar-expand-lg">
-								<div class="site-logo me-5">
-									<a class="navbar-brand" href="index.html">
-										<img class="logo-icon me-2" src="assets/images/site-logo.svg" alt="logo"/>
-									</a>
-								</div>
-								<button
-									class="navbar-toggler collapsed"
-									type="button"
-									data-bs-toggle="collapse"
-									data-bs-target="#navigation"
-									aria-controls="navigation"
-									aria-expanded="false"
-									aria-label="Toggle navigation"
-								>
-									<span></span>
-									<span></span>
-									<span></span>
-								</button>
-								<div class="collapse navbar-collapse pt-3 pt-lg-0" id="navigation">
-									<ul class="navbar-nav">
-										<li class="nav-item me-lg-4">
-											<a class="nav-link" href="product.html">Product</a>
-										</li>
-										<li class="nav-item me-lg-4">
-											<a class="nav-link" href="pricing.html">Pricing</a>
-										</li>
-										<li class="nav-item me-lg-4">
-											<a class="nav-link" href="customers.html">Customers</a>
-										</li>
-										<li class="nav-item dropdown me-lg-4">
-											<a
-												class="nav-link dropdown-toggle"
-												href="#"
-												id="navbarDropdown"
-												role="button"
-												data-bs-toggle="dropdown"
-												aria-haspopup="true"
-												aria-expanded="false"
-											>
-												About Us
-											</a>
-											<ul
-												class="dropdown-menu dropdown-menu-end rounded shadow menu-animate slideIn"
-												aria-labelledby="navbarDropdown"
-											>
-												<li><a class="dropdown-item has-icon" href="team.html">Team</a></li>
-												<li><a class="dropdown-item has-icon" href="case.html">Case Study</a></li>
-												<li><a class="dropdown-item has-icon" href="support.html">Support</a></li>
-												<li><a class="dropdown-item has-icon" href="blog.html">Blog</a></li>
-												<li><a class="dropdown-item has-icon" href="blog-post.html">Blog Post</a></li>
-												<li><a class="dropdown-item has-icon" href="contact.html">Contact</a></li>
-											</ul>
-										</li>
-									</ul>
-									<ul class="navbar-nav ms-auto">
-										<li class="nav-item me-lg-3">
-											<a class="nav-link mt-1 mb-3 mb-lg-0" href="/user/login">注册</a>
-										</li>
-										<li class="nav-item">
-											<a class="nav-btn btn btn-gradient text-white" href="/user/login">登录</a>
-										</li>
-									</ul><!--//navbar-nav-->
-								</div>
-							</nav>
-						</div><!--//container-->
-					</div><!--//branding-->
-				</header><!--//header-->
-			</div><!--//hero-wrapper-->
 			{ children... }
 			<footer class="footer">
 				<div class="container py-5 mb-3">
 					<div class="row">
 						<div class="footer-col col-12 col-md-6 col-lg-5 mb-3">
-							<h4><img class="logo-icon mb-2" src="assets/images/site-logo.svg" alt="logo"/></h4>
+							<h4><img class="logo-icon mb-2" src="/assets/images/site-logo.svg" alt="logo"/></h4>
 							<div>
 								About your company. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque sit amet
 								molestie dui. Praesent viverra rhoncus metus, eget malesuada nunc.
@@ -113,8 +39,6 @@ templ Base(title string) {
 							<ul class="social-list list-unstyled pt-4 mb-0">
 								<li class="list-inline-item"><a class="text-link" href="#"><i class="fab fa-github fa-fw"></i></a></li>
 								<li class="list-inline-item"><a class="text-link" href="#"><i class="fab fa-twitter fa-fw"></i></a></li>
-								<li class="list-inline-item"><a class="text-link" href="#"><i class="fab fa-facebook-f fa-fw"></i></a></li>
-								<li class="list-inline-item"><a class="text-link" href="#"><i class="fab fa-instagram fa-fw"></i></a></li>
 							</ul><!--//social-list-->
 						</div><!--//footer-col-->
 						<div class="footer-col col-12 col-md-6  col-lg-7 mb-lg-3">
@@ -171,11 +95,8 @@ templ Base(title string) {
 				</div><!--//container-->
 			</footer>
 			<!-- Javascript -->
-			<script src="assets/plugins/popper.min.js"></script>
-			<script src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
-			<!-- Page Specific JS -->
-			<script src="assets/plugins/tiny-slider/min/tiny-slider.js"></script>
-			<script src="assets/js/tinyslider-custom.js"></script>
+			<script src="/assets/plugins/popper.min.js"></script>
+			<script src="/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
 		</body>
 	</html>
 }

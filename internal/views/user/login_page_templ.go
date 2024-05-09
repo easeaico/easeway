@@ -10,6 +10,10 @@ import "context"
 import "io"
 import "bytes"
 
+import (
+	"github.com/easeaico/easeway/internal/views/layout"
+)
+
 func LoginPage() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
@@ -23,7 +27,22 @@ func LoginPage() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><title>EaseAI - 登录</title><!-- Meta --><meta charset=\"utf-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"description\" content=\"Bootstrap 5 Template For SaaS Businesses\"><meta name=\"author\" content=\"Xiaoying Riley at 3rd Wave Media\"><link rel=\"shortcut icon\" href=\"/assets/favicon.ico\"><!-- Google Font --><link href=\"https://fonts.googleapis.com/css?family=DM+Sans:400,500,700&amp;display=swap\" rel=\"stylesheet\"><!-- FontAwesome JS--><script defer src=\"/assets/fontawesome/js/all.min.js\"></script><!-- Plugins CSS --><link rel=\"stylesheet\" href=\"/assets/dripicons/webfont/webfont.css\"><!-- Theme CSS --><link id=\"theme-style\" rel=\"stylesheet\" href=\"/assets/css/theme.css\"></head><body><div class=\"signin-section auth-section\"><div class=\"curve-container\"><div class=\"curve-top\"></div><div class=\"curve-bottom\"></div></div><!--//curve-container--><div class=\"container\"><div class=\"single-col-max mx-auto over-curve px-5\"><div class=\"site-logo mb-4 text-center\"><a class=\"navbar-brand\" href=\"index.html\"><img class=\"logo-icon me-2\" src=\"/assets/images/site-logo.svg\" alt=\"logo\"></a></div><div class=\"auth-wrapper mx-auto\"><h2 class=\"auth-heading text-center mb-4\">使用邮箱登录你的账号</h2><div class=\"auth-form-container text-start mx-auto\"><form class=\"auth-form signup-form\"><div class=\"email mb-3\"><label class=\"sr-only\" for=\"signin-email\">邮箱</label> <input id=\"signin-email\" name=\"signin-email\" type=\"email\" class=\"form-control signin-email\" placeholder=\"邮箱\" required=\"required\"></div><!--//email--><div class=\"password mb-3\"><label class=\"sr-only\" for=\"signin-password\">验证码</label> <input id=\"signin-password\" name=\"signin-password\" type=\"password\" class=\"form-control signin-password\" placeholder=\"验证码\" required=\"required\"></div><!--//password--><div class=\"text-center\"><button type=\"button\" class=\"btn btn-primary btn-submit theme-btn mx-auto\">发送验证码</button> <button type=\"submit\" class=\"btn btn-primary btn-submit theme-btn mx-auto\">登录</button></div></form></div><!--//auth-form-container--><div class=\"auth-footer py-5 mt-5 text-center\"><div class=\"copyright mb-2\">Template Copyright &copy; <a class=\"theme-link\" href=\"https://themes.3rdwavemedia.com/\" target=\"_blank\">3rd Wave Media</a></div><div class=\"legal\"><ul class=\"list-inline\"><li class=\"list-inline-item\"><a class=\"theme-link\" href=\"#\">Privacy Policy</a></li><li class=\"list-inline-item\">|</li><li class=\"list-inline-item\"><a class=\"theme-link\" href=\"#\">Terms of Services</a></li></ul></div></div><!--//auth-footer--></div><!--//auth-wrapper--></div><!--//single-col-max--></div><!--//container--></div><!--//signin-section--><!-- Javascript --><script src=\"/assets/plugins/popper.min.js\"></script><script src=\"/assets/plugins/bootstrap/js/bootstrap.min.js\"></script></body></html>")
+		templ_7745c5c3_Var2 := templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+			if !templ_7745c5c3_IsBuffer {
+				templ_7745c5c3_Buffer = templ.GetBuffer()
+				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"signin-section auth-section\"><div class=\"curve-container\"><div class=\"curve-top\"></div><div class=\"curve-bottom\"></div></div><!--//curve-container--><div class=\"container\"><div class=\"single-col-max mx-auto over-curve px-5\"><div class=\"site-logo mb-4 text-center\"><a class=\"navbar-brand\" href=\"index.html\"><img class=\"logo-icon me-2\" src=\"/assets/images/site-logo.svg\" alt=\"logo\"></a></div><div class=\"auth-wrapper mx-auto\"><h2 class=\"auth-heading text-center mb-4\">登录你的账号</h2><div class=\"auth-form-container text-start mx-auto\"><form class=\"auth-form signup-form\" hx-post=\"/user/do_login\"><div class=\"email mb-3\"><label class=\"sr-only\" for=\"signin-email\">邮箱</label> <input id=\"signin-email\" name=\"signin-email\" type=\"email\" class=\"form-control signin-email\" placeholder=\"邮箱\" required=\"required\"></div><!--//email--><div class=\"password mb-3\"><div class=\"extra mt-2 position-relative\"><div class=\"mb-0\"><label class=\"sr-only\" for=\"signin-password\">验证码</label> <input id=\"signin-verifycode\" name=\"signin-verifycode\" type=\"text\" class=\"form-control signin-password w-75\" placeholder=\"验证码\"></div><div class=\"forgotten-password\"><button type=\"button\" class=\"btn theme-btn mx-auto\" hx-post=\"/user/send_verification\" hx-disabled-elt=\"this\">发送</button></div></div></div><div class=\"text-center\"><button type=\"submit\" class=\"btn btn-primary btn-submit theme-btn mx-auto\">登录</button></div></form></div><!--//auth-form-container--><div class=\"auth-footer py-5 mt-5 text-center\"></div></div><!--//auth-wrapper--></div><!--//single-col-max--></div><!--//container--></div><!--//signin-section-->")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if !templ_7745c5c3_IsBuffer {
+				_, templ_7745c5c3_Err = io.Copy(templ_7745c5c3_W, templ_7745c5c3_Buffer)
+			}
+			return templ_7745c5c3_Err
+		})
+		templ_7745c5c3_Err = layout.Base("登录").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

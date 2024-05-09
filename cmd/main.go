@@ -38,6 +38,7 @@ func main() {
 	userHandler := handlers.NewUserHandler(conf, queries)
 
 	e := echo.New()
+	e.File("/favicon.ico", "images/favicon.ico")
 	e.Static("/assets", "assets")
 
 	e.Use(middleware.Logger())
@@ -61,8 +62,8 @@ func main() {
 
 	user := e.Group("/user")
 	user.GET("/login", userHandler.LoginPage)
+	user.POST("/send_verification", userHandler.SendVerification)
 	user.POST("/do_login", userHandler.DoLogin)
-	user.GET("/send_verification", userHandler.SendVerificationCode)
 
 	err := e.Start(fmt.Sprintf("%s:%d", conf.Server.IP, conf.Server.Port))
 	if err != nil {

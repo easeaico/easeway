@@ -48,11 +48,12 @@ type Outcome struct {
 }
 
 type User struct {
-	ID        int64
-	Email     string
-	Amount    int32
-	SessionID string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt pgtype.Timestamptz
+	ID               int64
+	Email            string
+	Amount           int32
+	VerificationCode string
+	SessionID        pgtype.Text
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        pgtype.Timestamptz
 }

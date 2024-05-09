@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS users (
     "id" bigserial PRIMARY KEY,
     "email" varchar(255) NOT NULL,
     "amount" integer NOT NULL DEFAULT 0,
-    "session_id" varchar(512) NOT NULL,
+    "verification_code" varchar(8) NOT NULL,
+    "session_id" varchar(512), 
     "created_at" timestamptz NOT NULL DEFAULT now(),
     "updated_at" timestamptz NOT NULL DEFAULT now(),
     "deleted_at" timestamptz

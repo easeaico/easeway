@@ -18,3 +18,27 @@ INSERT INTO outcomes (
   $1, $2, $3, $4, $5, $6, $7, $8
 )
 RETURNING *;
+
+
+-- name: GetUserByEmail :one
+SELECT * FROM users
+WHERE email = $1 AND deleted_at IS NULL
+LIMIT 1;
+
+-- name: CreateUser :one
+INSERT INTO users (
+  email, verification_code
+) VALUES (
+  $1, $2
+)
+RETURNING *;
+
+-- name: UpdateVerificationCode :exec
+UPDATE users 
+SET verification_code = $2
+WHERE id = $1;
+
+-- name: UpdateSessionID :exec
+UPDATE users 
+SET session_id = $2
+WHERE id = $1; 

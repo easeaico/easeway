@@ -7,6 +7,8 @@ package store
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createAPIKey = `-- name: CreateAPIKey :one
@@ -90,6 +92,36 @@ func (q *Queries) CreateOutcome(ctx context.Context, arg CreateOutcomeParams) (O
 	return i, err
 }
 
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (
+  email, verification_code
+) VALUES (
+  $1, $2
+)
+RETURNING id, email, amount, verification_code, session_id, created_at, updated_at, deleted_at
+`
+
+type CreateUserParams struct {
+	Email            string
+	VerificationCode string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.VerificationCode)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Amount,
+		&i.VerificationCode,
+		&i.SessionID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const getAPIKey = `-- name: GetAPIKey :one
 SELECT id, user_id, name, key, spend, status, created_at, updated_at, deleted_at FROM api_keys 
 WHERE key = $1 AND deleted_at IS NULL 
@@ -111,4 +143,58 @@ func (q *Queries) GetAPIKey(ctx context.Context, key string) (ApiKey, error) {
 		&i.DeletedAt,
 	)
 	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, email, amount, verification_code, session_id, created_at, updated_at, deleted_at FROM users
+WHERE email = $1 AND deleted_at IS NULL
+LIMIT 1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Amount,
+		&i.VerificationCode,
+		&i.SessionID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const updateSessionID = `-- name: UpdateSessionID :exec
+UPDATE users 
+SET session_id = $2
+WHERE id = $1
+`
+
+type UpdateSessionIDParams struct {
+	ID        int64
+	SessionID pgtype.Text
+}
+
+func (q *Queries) UpdateSessionID(ctx context.Context, arg UpdateSessionIDParams) error {
+	_, err := q.db.Exec(ctx, updateSessionID, arg.ID, arg.SessionID)
+	return err
+}
+
+const updateVerificationCode = `-- name: UpdateVerificationCode :exec
+UPDATE users 
+SET verification_code = $2
+WHERE id = $1
+`
+
+type UpdateVerificationCodeParams struct {
+	ID               int64
+	VerificationCode string
+}
+
+func (q *Queries) UpdateVerificationCode(ctx context.Context, arg UpdateVerificationCodeParams) error {
+	_, err := q.db.Exec(ctx, updateVerificationCode, arg.ID, arg.VerificationCode)
+	return err
 }
