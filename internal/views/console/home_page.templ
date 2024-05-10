@@ -1,0 +1,12 @@
+package console
+
+import (
+"github.com/easeaico/easeway/internal/views/layout"
+"github.com/easeaico/easeway/internal/views/partials"
+)
+
+templ HomePage(username string, fromProtected bool) {
+@layout.Base("首页") {
+@partials.Navbar(username, fromProtected)
+}
+}

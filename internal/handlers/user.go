@@ -39,7 +39,30 @@ func NewUserHandler(config *config.Config, queries *store.Queries) *UserHandler 
 var verificationCodeTemplate string
 
 func (u UserHandler) LoginPage(c echo.Context) error {
-	return user.LoginPage().Render(c.Request().Context(), c.Response().Writer)
+	sessionCookie, err := c.Cookie("session")
+	if errors.Is(err, http.ErrNoCookie) {
+		return user.LoginPage().Render(c.Request().Context(), c.Response().Writer)
+	}
+
+	if err != nil {
+		slog.Error("session cookie not found", slog.Any("error", err))
+		return err
+	}
+
+	sessionID := sessionCookie.Value
+	_, err = u.queries.GetUserBySessionID(c.Request().Context(), pgtype.Text{
+		String: sessionID,
+		Valid:  true,
+	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return user.LoginPage().Render(c.Request().Context(), c.Response().Writer)
+	}
+	if err != nil {
+		slog.Error("get user by session error", slog.Any("error", err))
+		return err
+	}
+
+	return c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
 func (u UserHandler) DoLogin(c echo.Context) error {
@@ -56,6 +79,10 @@ func (u UserHandler) DoLogin(c echo.Context) error {
 	if err != nil {
 		slog.Error("query user by email error", slog.Any("error", err))
 		return err
+	}
+
+	if time.Since(user.VerificationAt) > 5*time.Minute {
+		return echo.NewHTTPError(http.StatusForbidden, "验证码已过期")
 	}
 
 	verificationCode := c.FormValue("signin-verifycode")

@@ -52,6 +52,7 @@ type User struct {
 	Email            string
 	Amount           int32
 	VerificationCode string
+	VerificationAt   time.Time
 	SessionID        pgtype.Text
 	CreatedAt        time.Time
 	UpdatedAt        time.Time

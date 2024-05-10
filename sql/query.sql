@@ -19,26 +19,30 @@ INSERT INTO outcomes (
 )
 RETURNING *;
 
-
 -- name: GetUserByEmail :one
 SELECT * FROM users
 WHERE email = $1 AND deleted_at IS NULL
 LIMIT 1;
 
+-- name: GetUserBySessionID :one
+SELECT * FROM users
+WHERE session_id = $1 AND deleted_at IS NULL
+LIMIT 1;
+
 -- name: CreateUser :one
 INSERT INTO users (
-  email, verification_code
+  email, verification_code, verification_at
 ) VALUES (
-  $1, $2
+  $1, $2, now()
 )
 RETURNING *;
 
 -- name: UpdateVerificationCode :exec
 UPDATE users 
-SET verification_code = $2
+SET verification_code = $2, verification_at = now()
 WHERE id = $1;
 
 -- name: UpdateSessionID :exec
 UPDATE users 
-SET session_id = $2
+SET session_id = $2, updated_at = now()
 WHERE id = $1; 

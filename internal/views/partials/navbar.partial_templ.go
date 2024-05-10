@@ -23,35 +23,35 @@ func Navbar(username string, fromProtected bool) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<nav class=\"navbar bg-primary text-primary-content fixed top-0 z-10\"><div class=\"navbar-start\"><a hx-swap=\"transition:true\" class=\"btn btn-ghost text-xl\" href=\"/\">Todo List</a></div><div class=\"navbar-end\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"hero-wrapper\"><div class=\"curve-container\"><div class=\"curve-top\"></div><div class=\"curve-bottom\"></div></div><!--//curve-container--><header class=\"header\"><div class=\"branding\"><div class=\"container\"><nav class=\"navbar navbar-expand-lg\"><div class=\"site-logo me-5\"><a class=\"navbar-brand\" href=\"index.html\"><img class=\"logo-icon me-2\" src=\"assets/images/site-logo.svg\" alt=\"logo\"></a></div><button class=\"navbar-toggler collapsed\" type=\"button\" data-bs-toggle=\"collapse\" data-bs-target=\"#navigation\" aria-controls=\"navigation\" aria-expanded=\"false\" aria-label=\"Toggle navigation\"><span></span> <span></span> <span></span></button><div class=\"collapse navbar-collapse pt-3 pt-lg-0\" id=\"navigation\"><ul class=\"navbar-nav\"><li class=\"nav-item me-lg-4\"><a class=\"nav-link\" href=\"/console/home\">我的控制台</a></li><li class=\"nav-item me-lg-4\"><a class=\"nav-link\" href=\"/user/membership\">会员服务</a></li><li class=\"nav-item me-lg-4\"><a class=\"nav-link\" href=\"/support\">技术支持</a></li></ul><ul class=\"navbar-nav ms-auto\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if fromProtected {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span class=\"font-bold text-indigo-700 mr-8\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<li class=\"nav-item me-lg-3\"><a class=\"nav-link mt-1 mb-3 mb-lg-0\" href=\"/user/login\">注册</a></li><li class=\"nav-item\"><a class=\"nav-btn btn btn-gradient text-white\" href=\"/user/login\">登录</a></li>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<li class=\"nav-item me-lg-3\"><span class=\"nav-link mt-1 mb-3 mb-lg-0\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/partials/navbar.partial.templ`, Line: 13, Col: 15}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/partials/navbar.partial.templ`, Line: 53, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> <a hx-swap=\"transition:true\" class=\"btn btn-ghost text-lg\" href=\"/todo/list\">Tasks</a> <button hx-swap=\"transition:true\" hx-post=\"/todo/logout\" hx-confirm=\"Are you sure you want to log out?\" hx-target=\"body\" hx-push-url=\"true\" class=\"btn btn-ghost text-lg\">Logout</button>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<a hx-swap=\"transition:true\" class=\"btn btn-ghost text-lg\" href=\"/register\">Register</a> <a hx-swap=\"transition:true\" class=\"btn btn-ghost text-lg\" href=\"/login\">Login</a>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></nav>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ul><!--//navbar-nav--></div></nav></div><!--//container--></div><!--//branding--></header><!--//header--></div><!--//hero-wrapper-->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

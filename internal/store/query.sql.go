@@ -94,11 +94,11 @@ func (q *Queries) CreateOutcome(ctx context.Context, arg CreateOutcomeParams) (O
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-  email, verification_code
+  email, verification_code, verification_at
 ) VALUES (
-  $1, $2
+  $1, $2, now()
 )
-RETURNING id, email, amount, verification_code, session_id, created_at, updated_at, deleted_at
+RETURNING id, email, amount, verification_code, verification_at, session_id, created_at, updated_at, deleted_at
 `
 
 type CreateUserParams struct {
@@ -114,6 +114,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.Amount,
 		&i.VerificationCode,
+		&i.VerificationAt,
 		&i.SessionID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -146,7 +147,7 @@ func (q *Queries) GetAPIKey(ctx context.Context, key string) (ApiKey, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, amount, verification_code, session_id, created_at, updated_at, deleted_at FROM users
+SELECT id, email, amount, verification_code, verification_at, session_id, created_at, updated_at, deleted_at FROM users
 WHERE email = $1 AND deleted_at IS NULL
 LIMIT 1
 `
@@ -159,6 +160,30 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.Amount,
 		&i.VerificationCode,
+		&i.VerificationAt,
+		&i.SessionID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const getUserBySessionID = `-- name: GetUserBySessionID :one
+SELECT id, email, amount, verification_code, verification_at, session_id, created_at, updated_at, deleted_at FROM users
+WHERE session_id = $1 AND deleted_at IS NULL
+LIMIT 1
+`
+
+func (q *Queries) GetUserBySessionID(ctx context.Context, sessionID pgtype.Text) (User, error) {
+	row := q.db.QueryRow(ctx, getUserBySessionID, sessionID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Amount,
+		&i.VerificationCode,
+		&i.VerificationAt,
 		&i.SessionID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -169,7 +194,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 
 const updateSessionID = `-- name: UpdateSessionID :exec
 UPDATE users 
-SET session_id = $2
+SET session_id = $2, updated_at = now()
 WHERE id = $1
 `
 
@@ -185,7 +210,7 @@ func (q *Queries) UpdateSessionID(ctx context.Context, arg UpdateSessionIDParams
 
 const updateVerificationCode = `-- name: UpdateVerificationCode :exec
 UPDATE users 
-SET verification_code = $2
+SET verification_code = $2, verification_at = now()
 WHERE id = $1
 `
 

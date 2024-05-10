@@ -11,6 +11,7 @@ import (
 	"github.com/easeaico/easeway/internal/spi"
 	"github.com/easeaico/easeway/internal/spi/googleapi"
 	"github.com/easeaico/easeway/internal/store"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -34,8 +35,9 @@ func main() {
 
 	homeHandler := handlers.NewHomeHandler()
 	apiHandler := handlers.NewAPISvcHandler(spis, queries)
-	keyHandler := handlers.NewAPIKeyHandler(queries)
 	userHandler := handlers.NewUserHandler(conf, queries)
+	consoleHandler := handlers.NewConsoleHandler(queries)
+	supportHandler := handlers.NewSupportHandler()
 
 	e := echo.New()
 	e.File("/favicon.ico", "images/favicon.ico")
@@ -45,7 +47,24 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 	e.GET("/", homeHandler.HomePage)
-	e.POST("/generate_key", keyHandler.GenerateNewKey)
+	e.GET("/support", supportHandler.HomePage)
+
+	console := e.Group("/console", middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		KeyLookup: "query:session",
+		Validator: func(sessionID string, c echo.Context) (bool, error) {
+			user, err := queries.GetUserBySessionID(c.Request().Context(), pgtype.Text{
+				String: sessionID,
+				Valid:  true,
+			})
+			if err != nil {
+				slog.Error("get user by session id error", slog.Any("error", err))
+				return false, err
+			}
+			c.Set("user", &user)
+			return true, nil
+		},
+	}))
+	console.POST("/generate_key", consoleHandler.GenerateNewKey)
 
 	v1 := e.Group("/v1", middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
 		ctx := c.Request().Context()

@@ -12,5 +12,5 @@ func NewHomeHandler() *HomeHandler {
 }
 
 func (h HomeHandler) HomePage(c echo.Context) error {
-	return home.HomePage().Render(c.Request().Context(), c.Response().Writer)
+	return home.HomePage("", false).Render(c.Request().Context(), c.Response().Writer)
 }
