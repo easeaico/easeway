@@ -10,7 +10,16 @@ import "context"
 import "io"
 import "bytes"
 
-func Navbar(username string, fromProtected bool) templ.Component {
+import (
+	"github.com/easeaico/easeway/internal/views"
+	"strings"
+)
+
+func getUserName(email string) string {
+	return email[0:strings.Index(email, "@")]
+}
+
+func Navbar(email string, fromProtected bool) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -23,30 +32,52 @@ func Navbar(username string, fromProtected bool) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"hero-wrapper\"><div class=\"curve-container\"><div class=\"curve-top\"></div><div class=\"curve-bottom\"></div></div><!--//curve-container--><header class=\"header\"><div class=\"branding\"><div class=\"container\"><nav class=\"navbar navbar-expand-lg\"><div class=\"site-logo me-5\"><a class=\"navbar-brand\" href=\"index.html\"><img class=\"logo-icon me-2\" src=\"assets/images/site-logo.svg\" alt=\"logo\"></a></div><button class=\"navbar-toggler collapsed\" type=\"button\" data-bs-toggle=\"collapse\" data-bs-target=\"#navigation\" aria-controls=\"navigation\" aria-expanded=\"false\" aria-label=\"Toggle navigation\"><span></span> <span></span> <span></span></button><div class=\"collapse navbar-collapse pt-3 pt-lg-0\" id=\"navigation\"><ul class=\"navbar-nav\"><li class=\"nav-item me-lg-4\"><a class=\"nav-link\" href=\"/console/home\">我的控制台</a></li><li class=\"nav-item me-lg-4\"><a class=\"nav-link\" href=\"/user/membership\">会员服务</a></li><li class=\"nav-item me-lg-4\"><a class=\"nav-link\" href=\"/support\">技术支持</a></li></ul><ul class=\"navbar-nav ms-auto\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"hero-wrapper\"><div class=\"curve-container\"><div class=\"curve-top\"></div><div class=\"curve-bottom\"></div></div><!--//curve-container--><header class=\"header\"><div class=\"branding\"><div class=\"container\"><nav class=\"navbar navbar-expand-lg\"><div class=\"site-logo me-5\"><a class=\"navbar-brand\" href=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 templ.SafeURL = views.RenderSafeURL("")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var2)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><img class=\"logo-icon me-2\" src=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(views.RenderURL("assets/images/site-logo.svg"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/partials/navbar.partial.templ`, Line: 24, Col: 94}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" alt=\"logo\"></a></div><button class=\"navbar-toggler collapsed\" type=\"button\" data-bs-toggle=\"collapse\" data-bs-target=\"#navigation\" aria-controls=\"navigation\" aria-expanded=\"false\" aria-label=\"Toggle navigation\"><span></span> <span></span> <span></span></button><div class=\"collapse navbar-collapse pt-3 pt-lg-0\" id=\"navigation\"><ul class=\"navbar-nav\"><li class=\"nav-item me-lg-4\"><a class=\"nav-link\" href=\"/console/home\">我的控制台</a></li><li class=\"nav-item me-lg-4\"><a class=\"nav-link\" href=\"/member\">会员权益</a></li><li class=\"nav-item me-lg-4\"><a class=\"nav-link\" href=\"/support\">技术支持</a></li></ul><ul class=\"navbar-nav ms-auto\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if fromProtected {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<li class=\"nav-item me-lg-3\"><a class=\"nav-link mt-1 mb-3 mb-lg-0\" href=\"/user/login\">注册</a></li><li class=\"nav-item\"><a class=\"nav-btn btn btn-gradient text-white\" href=\"/user/login\">登录</a></li>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<li class=\"nav-item me-lg-3\"><span class=\"nav-link mt-1 mb-3 mb-lg-0\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(username)
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(getUserName(email))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/partials/navbar.partial.templ`, Line: 53, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/partials/navbar.partial.templ`, Line: 48, Col: 77}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></li>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<li class=\"nav-item me-lg-3\"><a class=\"nav-link mt-1 mb-3 mb-lg-0\" href=\"/user/login\">注册</a></li><li class=\"nav-item\"><a class=\"nav-btn btn btn-gradient text-white\" href=\"/user/login\">登录</a></li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

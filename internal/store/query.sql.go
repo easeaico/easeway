@@ -171,7 +171,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 
 const getUserBySessionID = `-- name: GetUserBySessionID :one
 SELECT id, email, amount, verification_code, verification_at, session_id, created_at, updated_at, deleted_at FROM users
-WHERE session_id = $1 AND deleted_at IS NULL
+WHERE session_id = $1 AND deleted_at IS NULL AND updated_at + interval '10' hour > now()
 LIMIT 1
 `
 

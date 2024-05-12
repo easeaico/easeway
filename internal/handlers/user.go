@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"html/template"
@@ -20,7 +21,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
-	"gopkg.in/gomail.v2"
 )
 
 type UserHandler struct {
@@ -39,9 +39,12 @@ func NewUserHandler(config *config.Config, queries *store.Queries) *UserHandler 
 var verificationCodeTemplate string
 
 func (u UserHandler) LoginPage(c echo.Context) error {
+	ctx := c.Request().Context()
+	writer := c.Response().Writer
+
 	sessionCookie, err := c.Cookie("session")
 	if errors.Is(err, http.ErrNoCookie) {
-		return user.LoginPage().Render(c.Request().Context(), c.Response().Writer)
+		return user.Login().Render(ctx, writer)
 	}
 
 	if err != nil {
@@ -55,7 +58,7 @@ func (u UserHandler) LoginPage(c echo.Context) error {
 		Valid:  true,
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return user.LoginPage().Render(c.Request().Context(), c.Response().Writer)
+		return user.Login().Render(ctx, writer)
 	}
 	if err != nil {
 		slog.Error("get user by session error", slog.Any("error", err))
@@ -65,34 +68,44 @@ func (u UserHandler) LoginPage(c echo.Context) error {
 	return c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
-func (u UserHandler) DoLogin(c echo.Context) error {
+func (h UserHandler) DoLogin(c echo.Context) error {
+	ctx := c.Request().Context()
+	writer := c.Response().Writer
+
 	email := c.FormValue("signin-email")
+	action := c.FormValue("signin-action")
 	_, err := mail.ParseAddress(email)
 	if err != nil {
-		slog.Error("parse email address error", slog.Any("error", err))
-		return echo.NewHTTPError(http.StatusBadRequest, "邮箱格式不正确")
+		return user.LoginForm(email, "邮箱格式错误").Render(ctx, writer)
 	}
 
-	ctx := c.Request().Context()
+	if action == "code" {
+		err = h.sendVerification(ctx, email)
+		msg := ""
+		if err != nil {
+			msg = err.Error()
+		}
+		return user.LoginForm(email, msg).Render(ctx, writer)
+	}
 
-	user, err := u.queries.GetUserByEmail(ctx, email)
+	u, err := h.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		slog.Error("query user by email error", slog.Any("error", err))
 		return err
 	}
 
-	if time.Since(user.VerificationAt) > 5*time.Minute {
-		return echo.NewHTTPError(http.StatusForbidden, "验证码已过期")
+	if time.Since(u.VerificationAt) > 5*time.Minute {
+		return user.LoginForm(email, "验证码已经过期").Render(ctx, writer)
 	}
 
 	verificationCode := c.FormValue("signin-verifycode")
-	if user.VerificationCode != verificationCode {
-		return echo.NewHTTPError(http.StatusForbidden, "验证码不正确")
+	if u.VerificationCode != verificationCode {
+		return user.LoginForm(email, "邮箱或验证码错误").Render(ctx, writer)
 	}
 
 	sessionID := generateSessionID()
-	err = u.queries.UpdateSessionID(ctx, store.UpdateSessionIDParams{
-		ID: user.ID,
+	err = h.queries.UpdateSessionID(ctx, store.UpdateSessionIDParams{
+		ID: u.ID,
 		SessionID: pgtype.Text{
 			String: sessionID,
 			Valid:  true,
@@ -107,27 +120,19 @@ func (u UserHandler) DoLogin(c echo.Context) error {
 	cookie.Name = "session"
 	cookie.Value = sessionID
 	cookie.Expires = time.Now().Add(10 * time.Hour)
+	cookie.Path = "/"
+	cookie.HttpOnly = true
 	c.SetCookie(cookie)
 
-	c.Response().Header().Set("HX-Redirect", "/")
-	return nil
+	return c.Redirect(http.StatusTemporaryRedirect, "/console/home")
 }
 
-func (u UserHandler) SendVerification(c echo.Context) error {
-	email := c.FormValue("signin-email")
-	_, err := mail.ParseAddress(email)
-	if err != nil {
-		slog.Error("parse email address error", slog.Any("error", err))
-		return echo.NewHTTPError(http.StatusBadRequest, "邮箱格式不正确")
-	}
-
+func (u UserHandler) sendVerification(ctx context.Context, email string) error {
 	t, err := template.New("verification_code").Parse(verificationCodeTemplate)
 	if err != nil {
 		slog.Error("parse message template error", slog.Any("error", err))
 		return err
 	}
-
-	ctx := c.Request().Context()
 
 	verificationCode := generateCode()
 	user, err := u.queries.GetUserByEmail(ctx, email)
@@ -168,18 +173,18 @@ func (u UserHandler) SendVerification(c echo.Context) error {
 	content := buf.String()
 	slog.Info("email template render", slog.String("content", content))
 
-	m := gomail.NewMessage()
-	cfg := u.config.Email
-	m.SetHeader("From", cfg.From)
-	m.SetHeader("To", email)
-	m.SetHeader("Subject", cfg.Subject)
-	m.SetBody("text/html", content)
+	// m := gomail.NewMessage()
+	// cfg := u.config.Email
+	// m.SetHeader("From", cfg.From)
+	// m.SetHeader("To", email)
+	// m.SetHeader("Subject", cfg.Subject)
+	// m.SetBody("text/html", content)
 
-	d := gomail.NewDialer(cfg.ProviderHost, cfg.ProviderPort, cfg.From, cfg.Pass)
-	if err := d.DialAndSend(m); err != nil {
-		slog.Error("send email message error", slog.Any("error", err))
-		return err
-	}
+	// d := gomail.NewDialer(cfg.ProviderHost, cfg.ProviderPort, cfg.From, cfg.Pass)
+	// if err := d.DialAndSend(m); err != nil {
+	// 	slog.Error("send email message error", slog.Any("error", err))
+	// 	return err
+	// }
 
 	return nil
 }

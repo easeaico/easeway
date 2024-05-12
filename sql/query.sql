@@ -26,7 +26,7 @@ LIMIT 1;
 
 -- name: GetUserBySessionID :one
 SELECT * FROM users
-WHERE session_id = $1 AND deleted_at IS NULL
+WHERE session_id = $1 AND deleted_at IS NULL AND updated_at + interval '10' hour > now()
 LIMIT 1;
 
 -- name: CreateUser :one

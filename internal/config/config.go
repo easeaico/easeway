@@ -33,20 +33,26 @@ type Config struct {
 	OpenAI       OpenAI `yaml:"openai"`
 	DBConnection string `yaml:"db_connection"`
 	Server       Server `yaml:"server"`
+	Site         Site   `yaml:"site"`
 }
 
-func NewConfig(path string) *Config {
-	var config Config
+type Site struct {
+	Scheme string `yaml:"scheme"`
+	Host   string `yaml:"host"`
+}
 
+var Conf Config
+
+func NewConfig(path string) *Config {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatalf("Error reading YAML file: %s", err)
 	}
 
-	err = yaml.Unmarshal(data, &config)
+	err = yaml.Unmarshal(data, &Conf)
 	if err != nil {
 		log.Fatalf("Error unmarshalling YAML data: %s", err)
 	}
 
-	return &config
+	return &Conf
 }
