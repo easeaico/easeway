@@ -48,18 +48,27 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
-	e.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		Skipper: func(c echo.Context) bool {
-			if strings.HasPrefix(c.Request().URL.Path, "/v1/") {
-				return true
+
+	e.GET("/", homeHandler.HomePage)
+	e.GET("/support", supportHandler.HomePage)
+	e.GET("/member", memberHandler.HomePage)
+
+	v1 := e.Group("/v1", middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		Validator: func(key string, c echo.Context) (bool, error) {
+			ctx := c.Request().Context()
+			apiKey, err := queries.GetAPIKey(ctx, key)
+			if err != nil {
+				slog.Error("api key not found", slog.String("key", key), slog.Any("error", err))
+				return false, err
 			}
 
-			if strings.HasPrefix(c.Request().URL.Path, "/user/") {
-				return true
-			}
-
-			return false
+			c.Set(handlers.APIKeyCtxKey, &apiKey)
+			return apiKey.Status == 0, nil
 		},
+	}))
+	v1.POST("/chat/completions", apiHandler.CreateChatCompletion)
+
+	console := e.Group("/console", middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		KeyLookup: "cookie:session",
 		Validator: func(sessionID string, c echo.Context) (bool, error) {
 			user, err := queries.GetUserBySessionID(c.Request().Context(), pgtype.Text{
@@ -78,36 +87,10 @@ func main() {
 			return true, nil
 		},
 	}))
-	e.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		Skipper: func(c echo.Context) bool {
-			if strings.HasPrefix(c.Request().URL.Path, "/v1/") {
-				return false
-			}
-
-			return true
-		},
-		Validator: func(key string, c echo.Context) (bool, error) {
-			ctx := c.Request().Context()
-			apiKey, err := queries.GetAPIKey(ctx, key)
-			if err != nil {
-				slog.Error("api key not found", slog.String("key", key), slog.Any("error", err))
-				return false, err
-			}
-
-			c.Set(handlers.APIKeyCtxKey, &apiKey)
-			return apiKey.Status == 0, nil
-		},
-	}))
-	e.GET("/", homeHandler.HomePage)
-	e.GET("/support", supportHandler.HomePage)
-	e.GET("/member", memberHandler.HomePage)
-
-	e.POST("/v1/chat/completions", apiHandler.CreateChatCompletion)
-
-	console := e.Group("/console")
 	console.GET("/home", consoleHandler.HomePage)
 	console.POST("/home", consoleHandler.HomePage)
-	console.POST("/generate_key", consoleHandler.GenerateNewKey)
+	console.GET("/create_key_page", consoleHandler.CreateKeyPage)
+	console.POST("/generate_key", consoleHandler.GenerateKey)
 
 	user := e.Group("/user")
 	user.GET("/login", userHandler.LoginPage)

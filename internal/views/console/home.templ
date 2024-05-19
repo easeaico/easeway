@@ -3,10 +3,35 @@ package console
 import (
 "github.com/easeaico/easeway/internal/views/layout"
 "github.com/easeaico/easeway/internal/views/partials"
+"github.com/easeaico/easeway/internal/store"
+"fmt"
 )
 
-templ HomePage(username string, fromProtected bool) {
+templ HomePage(username string, fromProtected bool, keys []store.ApiKey) {
 @layout.Base("控制台") {
 @partials.Navbar(username, fromProtected)
+<section class="pricing-header page-header over-curve py-3 py-md-5">
+  <div class="container text-left">
+    <p class="h3">我的密钥</p>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">标签</th>
+          <th scope="col">密钥</th>
+        </tr>
+      </thead>
+      <tbody>
+        for _, key := range keys {
+        <tr>
+          <th scope="row">{ fmt.Sprintf("%d", key.ID) }</th>
+          <td>{ key.Name }</td>
+          <td>{ key.Key }</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
 }
 }

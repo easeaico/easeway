@@ -29,8 +29,28 @@ func NewSPIRegistry(conf *config.Config) *SPIRegistry {
 	openaiAPI := openaiapi.NewOpenAIClient(conf)
 
 	providers := map[string]ModelSPI{
-		openai.GPT4TurboPreview: openaiAPI,
-		openai.GPT4Turbo0125:    openaiAPI,
+		openai.GPT432K0613:           openaiAPI,
+		openai.GPT432K0314:           openaiAPI,
+		openai.GPT432K:               openaiAPI,
+		openai.GPT40613:              openaiAPI,
+		openai.GPT40314:              openaiAPI,
+		openai.GPT4o:                 openaiAPI,
+		openai.GPT4o20240513:         openaiAPI,
+		openai.GPT4Turbo:             openaiAPI,
+		openai.GPT4Turbo20240409:     openaiAPI,
+		openai.GPT4Turbo0125:         openaiAPI,
+		openai.GPT4Turbo1106:         openaiAPI,
+		openai.GPT4TurboPreview:      openaiAPI,
+		openai.GPT4VisionPreview:     openaiAPI,
+		openai.GPT4:                  openaiAPI,
+		openai.GPT3Dot5Turbo0125:     openaiAPI,
+		openai.GPT3Dot5Turbo1106:     openaiAPI,
+		openai.GPT3Dot5Turbo0613:     openaiAPI,
+		openai.GPT3Dot5Turbo0301:     openaiAPI,
+		openai.GPT3Dot5Turbo16K:      openaiAPI,
+		openai.GPT3Dot5Turbo16K0613:  openaiAPI,
+		openai.GPT3Dot5Turbo:         openaiAPI,
+		openai.GPT3Dot5TurboInstruct: openaiAPI,
 	}
 	return &SPIRegistry{
 		conf:      conf,

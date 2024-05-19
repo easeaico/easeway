@@ -19,10 +19,5 @@ func NewHomeHandler(queries *store.Queries) *HomeHandler {
 func (h HomeHandler) HomePage(c echo.Context) error {
 	ctx := c.Request().Context()
 	writer := c.Response().Writer
-	user, ok := c.Get("user").(*store.User)
-	if ok {
-		return home.Home(user.Email, true).Render(ctx, writer)
-	} else {
-		return home.Home("", false).Render(ctx, writer)
-	}
+	return home.Home("", false).Render(ctx, writer)
 }

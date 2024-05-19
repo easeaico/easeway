@@ -45,16 +45,17 @@ func (q *Queries) CreateAPIKey(ctx context.Context, arg CreateAPIKeyParams) (Api
 
 const createOutcome = `-- name: CreateOutcome :one
 INSERT INTO outcomes (
-  user_id, key_id, prompt_tokens, completion_tokens, total_tokens, rt, fee_rate, cost
+  user_id, key_id, model_name, prompt_tokens, completion_tokens, total_tokens, rt, fee_rate, cost
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8
+  $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
-RETURNING id, user_id, key_id, prompt_tokens, completion_tokens, total_tokens, fee_rate, cost, rt, created_at, updated_at, deleted_at
+RETURNING id, user_id, key_id, model_name, prompt_tokens, completion_tokens, total_tokens, fee_rate, cost, rt, created_at, updated_at, deleted_at
 `
 
 type CreateOutcomeParams struct {
 	UserID           int64
 	KeyID            int64
+	ModelName        string
 	PromptTokens     int32
 	CompletionTokens int32
 	TotalTokens      int32
@@ -67,6 +68,7 @@ func (q *Queries) CreateOutcome(ctx context.Context, arg CreateOutcomeParams) (O
 	row := q.db.QueryRow(ctx, createOutcome,
 		arg.UserID,
 		arg.KeyID,
+		arg.ModelName,
 		arg.PromptTokens,
 		arg.CompletionTokens,
 		arg.TotalTokens,
@@ -79,6 +81,7 @@ func (q *Queries) CreateOutcome(ctx context.Context, arg CreateOutcomeParams) (O
 		&i.ID,
 		&i.UserID,
 		&i.KeyID,
+		&i.ModelName,
 		&i.PromptTokens,
 		&i.CompletionTokens,
 		&i.TotalTokens,
@@ -190,6 +193,42 @@ func (q *Queries) GetUserBySessionID(ctx context.Context, sessionID pgtype.Text)
 		&i.DeletedAt,
 	)
 	return i, err
+}
+
+const listAPIKeys = `-- name: ListAPIKeys :many
+SELECT id, user_id, name, key, spend, status, created_at, updated_at, deleted_at FROM api_keys 
+WHERE user_id = $1 AND deleted_at IS NULL
+ORDER BY id
+`
+
+func (q *Queries) ListAPIKeys(ctx context.Context, userID int64) ([]ApiKey, error) {
+	rows, err := q.db.Query(ctx, listAPIKeys, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ApiKey
+	for rows.Next() {
+		var i ApiKey
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.Key,
+			&i.Spend,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateSessionID = `-- name: UpdateSessionID :exec

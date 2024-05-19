@@ -3,6 +3,11 @@ SELECT * FROM api_keys
 WHERE key = $1 AND deleted_at IS NULL 
 LIMIT 1;
 
+-- name: ListAPIKeys :many
+SELECT * FROM api_keys 
+WHERE user_id = $1 AND deleted_at IS NULL
+ORDER BY id;
+
 -- name: CreateAPIKey :one
 INSERT INTO api_keys (
   user_id, name, key
@@ -13,9 +18,9 @@ RETURNING *;
 
 -- name: CreateOutcome :one
 INSERT INTO outcomes (
-  user_id, key_id, prompt_tokens, completion_tokens, total_tokens, rt, fee_rate, cost
+  user_id, key_id, model_name, prompt_tokens, completion_tokens, total_tokens, rt, fee_rate, cost
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8
+  $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
 RETURNING *;
 

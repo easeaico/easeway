@@ -8,6 +8,9 @@ import (
 )
 
 func RenderURL(path string) string {
+	if len(path) > 0 && path[0] == '/' {
+		path = path[1:]
+	}
 	return fmt.Sprintf("%s://%s/%s", config.Conf.Site.Scheme, config.Conf.Site.Host, path)
 }
 

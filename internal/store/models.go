@@ -36,6 +36,7 @@ type Outcome struct {
 	ID               int64
 	UserID           int64
 	KeyID            int64
+	ModelName        string
 	PromptTokens     int32
 	CompletionTokens int32
 	TotalTokens      int32

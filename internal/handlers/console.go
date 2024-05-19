@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -25,10 +26,21 @@ func NewConsoleHandler(queries *store.Queries) *ConsoleHandler {
 
 func (h ConsoleHandler) HomePage(c echo.Context) error {
 	user := c.Get("user").(*store.User)
-	return console.HomePage(user.Email, true).Render(c.Request().Context(), c.Response().Writer)
+	keys, err := h.queries.ListAPIKeys(c.Request().Context(), user.ID)
+	if err != nil && err != pgx.ErrNoRows {
+		slog.Error("list api keys error", slog.Any("error", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return console.HomePage(user.Email, true, keys).Render(c.Request().Context(), c.Response().Writer)
 }
 
-func (h ConsoleHandler) GenerateNewKey(c echo.Context) error {
+func (h ConsoleHandler) CreateKeyPage(c echo.Context) error {
+	user := c.Get("user").(*store.User)
+	return console.CreateKeyPage(user.Email, true).Render(c.Request().Context(), c.Response().Writer)
+}
+
+func (h ConsoleHandler) GenerateKey(c echo.Context) error {
 	user := c.Get("user").(*store.User)
 
 	name := c.FormValue("key_name")
@@ -49,7 +61,7 @@ func (h ConsoleHandler) GenerateNewKey(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return nil
+	return c.Redirect(http.StatusTemporaryRedirect, "/console/home")
 }
 
 func generateAPIKey() string {

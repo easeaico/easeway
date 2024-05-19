@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS outcomes (
     "id" bigserial PRIMARY KEY,
     "user_id" bigint NOT NULL,
     "key_id" bigint NOT NULL,
+    "model_name" varchar(255) NOT NULL,
     "prompt_tokens" integer NOT NULL,
     "completion_tokens" integer NOT NULL,
     "total_tokens" integer NOT NULL,

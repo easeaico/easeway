@@ -1,24 +1,20 @@
-# syntax=docker/dockerfile:1
-
-# Build the application from source
-FROM golang:latest AS build-stage
-
-ENV GOPROXY https://goproxy.cn,direct
+FROM golang:1.22 AS build-stage
 
 WORKDIR /build
 
+ENV GOPROXY https://goproxy.cn,direct
+
+# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod download && go mod verify
 
 COPY . .
+RUN go build -v -o /build/easeway ./cmd
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o llm_gateway
+FROM debian:12 AS build-release-stage
 
-# Deploy the application binary into a lean image
-FROM gcr.io/distroless/base-debian11 AS build-release-stage
-
+RUN apt-get update && apt-get install -y ca-certificates
 WORKDIR /app
-COPY --from=build-stage /build/llm_gateway llm_gateway
+COPY --from=build-stage /build/easeway easeway
 EXPOSE 8055
-USER nonroot:nonroot
-ENTRYPOINT ["/app/llm_gateway", "-f", "/conf/config.yaml"]
+ENTRYPOINT ["/app/easeway", "-f", "/conf/config.yaml"]

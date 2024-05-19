@@ -48,6 +48,12 @@ func (a *APISvcHandler) CreateChatCompletion(c echo.Context) error {
 	}
 
 	mspi := a.spis.LoadByModel(req.Model)
+	if mspi == nil {
+		msg := fmt.Sprintf("unknown model name: %s", req.Model)
+		slog.Error(msg, slog.String("model", req.Model))
+		return c.String(http.StatusBadRequest, msg)
+	}
+
 	ctx := c.Request().Context()
 	r := c.Response()
 
@@ -59,14 +65,10 @@ func (a *APISvcHandler) CreateChatCompletion(c echo.Context) error {
 		err              error
 	)
 
-	for _, msg := range req.Messages {
-		promptTokens += len(a.tke.Encode(msg.Content, nil, nil))
-	}
-
 	if req.Stream {
-		err = a.doChatCompletionStream(ctx, &req, mspi, &completionTokens, r)
+		err = a.doChatCompletionStream(ctx, &req, mspi, &promptTokens, &completionTokens, r)
 	} else {
-		err = a.doChatCompletion(ctx, &req, mspi, &completionTokens, r)
+		err = a.doChatCompletion(ctx, &req, mspi, &promptTokens, &completionTokens, r)
 	}
 
 	if err != nil {
@@ -76,8 +78,9 @@ func (a *APISvcHandler) CreateChatCompletion(c echo.Context) error {
 
 	totalTokens := promptTokens + completionTokens
 	_, err = a.queries.CreateOutcome(ctx, store.CreateOutcomeParams{
-		UserID:           1,
 		KeyID:            key.ID,
+		UserID:           key.UserID,
+		ModelName:        req.Model,
 		PromptTokens:     int32(promptTokens),
 		CompletionTokens: int32(completionTokens),
 		TotalTokens:      int32(totalTokens),
@@ -93,12 +96,13 @@ func (a *APISvcHandler) CreateChatCompletion(c echo.Context) error {
 	return nil
 }
 
-func (a *APISvcHandler) doChatCompletion(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.ModelSPI, completionTokens *int, r *echo.Response) error {
+func (a *APISvcHandler) doChatCompletion(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.ModelSPI, promptTokens *int, completionTokens *int, r *echo.Response) error {
 	resp, err := mspi.CreateChatCompletion(ctx, req)
 	if err != nil {
 		return err
 	}
 
+	*promptTokens = resp.Usage.PromptTokens
 	*completionTokens = resp.Usage.CompletionTokens
 
 	data, err := json.Marshal(resp)
@@ -112,7 +116,7 @@ func (a *APISvcHandler) doChatCompletion(ctx context.Context, req *openai.ChatCo
 	return nil
 }
 
-func (a *APISvcHandler) doChatCompletionStream(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.ModelSPI, completionTokens *int, r *echo.Response) error {
+func (a *APISvcHandler) doChatCompletionStream(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.ModelSPI, promptTokens *int, completionTokens *int, r *echo.Response) error {
 	stream, err := mspi.CreateChatCompletionStream(ctx, req)
 	if err != nil {
 		return err
@@ -120,6 +124,10 @@ func (a *APISvcHandler) doChatCompletionStream(ctx context.Context, req *openai.
 
 	r.Header().Set(echo.HeaderContentType, "text/event-stream")
 	r.WriteHeader(http.StatusOK)
+
+	for _, msg := range req.Messages {
+		*promptTokens += len(a.tke.Encode(msg.Content, nil, nil))
+	}
 
 	for {
 		select {
