@@ -10,7 +10,6 @@ import (
 	"github.com/easeaico/easeway/internal/config"
 	"github.com/easeaico/easeway/internal/handlers"
 	"github.com/easeaico/easeway/internal/spi"
-	"github.com/easeaico/easeway/internal/spi/googleapi"
 	"github.com/easeaico/easeway/internal/store"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
@@ -23,12 +22,8 @@ func main() {
 	flag.Parse()
 
 	conf := config.NewConfig(confFile)
-
 	ctx := context.Background()
-
-	spis := spi.NewSPIRegistry(conf)
-	gemini := googleapi.NewGenerativeAIClient(ctx, conf)
-	spis.AddModelSPI("gemini-1.0-pro", gemini)
+	spis := spi.NewSPIRegistry(ctx, conf)
 
 	pool := store.NewDBTX(ctx, conf)
 	defer pool.Close()

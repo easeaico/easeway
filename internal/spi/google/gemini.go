@@ -1,4 +1,4 @@
-package googleapi
+package google
 
 import (
 	"context"

@@ -68,7 +68,7 @@ func (a *APISvcHandler) CreateChatCompletion(c echo.Context) error {
 	if req.Stream {
 		err = a.doChatCompletionStream(ctx, &req, mspi, &promptTokens, &completionTokens, r)
 	} else {
-		err = a.doChatCompletion(ctx, &req, mspi, &promptTokens, &completionTokens, r)
+		err = a.doChatCompletion(ctx, &req, mspi, &promptTokens, &completionTokens, c)
 	}
 
 	if err != nil {
@@ -96,7 +96,7 @@ func (a *APISvcHandler) CreateChatCompletion(c echo.Context) error {
 	return nil
 }
 
-func (a *APISvcHandler) doChatCompletion(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.ModelSPI, promptTokens *int, completionTokens *int, r *echo.Response) error {
+func (a *APISvcHandler) doChatCompletion(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.ModelSPI, promptTokens *int, completionTokens *int, c echo.Context) error {
 	resp, err := mspi.CreateChatCompletion(ctx, req)
 	if err != nil {
 		return err
@@ -104,16 +104,7 @@ func (a *APISvcHandler) doChatCompletion(ctx context.Context, req *openai.ChatCo
 
 	*promptTokens = resp.Usage.PromptTokens
 	*completionTokens = resp.Usage.CompletionTokens
-
-	data, err := json.Marshal(resp)
-	if err != nil {
-		return err
-	}
-
-	fmt.Fprintf(r, "data: %s\n\n", string(data))
-	r.Flush()
-
-	return nil
+	return c.JSON(http.StatusOK, resp)
 }
 
 func (a *APISvcHandler) doChatCompletionStream(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.ModelSPI, promptTokens *int, completionTokens *int, r *echo.Response) error {

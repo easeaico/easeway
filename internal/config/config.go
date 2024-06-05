@@ -11,6 +11,10 @@ type OpenAI struct {
 	ApiKey string `yaml:"api_key"`
 }
 
+type Groq struct {
+	ApiKey string `yaml:"api_key"`
+}
+
 type Gemini struct {
 	ApiKey string `yaml:"api_key"`
 }
@@ -31,6 +35,7 @@ type Config struct {
 	Email        Email  `yaml:"email"`
 	Gemini       Gemini `yaml:"gemini"`
 	OpenAI       OpenAI `yaml:"openai"`
+	Groq         Groq   `yaml:"groq"`
 	DBConnection string `yaml:"db_connection"`
 	Server       Server `yaml:"server"`
 	Site         Site   `yaml:"site"`
