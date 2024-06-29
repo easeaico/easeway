@@ -6,6 +6,7 @@ import (
 	"github.com/easeaico/easeway/internal/config"
 	"github.com/easeaico/easeway/internal/spi/google"
 	"github.com/easeaico/easeway/internal/spi/groq"
+	"github.com/easeaico/easeway/internal/spi/mistral"
 	openaispi "github.com/easeaico/easeway/internal/spi/openai"
 	"github.com/sashabaranov/go-openai"
 )
@@ -47,6 +48,7 @@ func NewSPIRegistry(ctx context.Context, conf *config.Config) *SPIRegistry {
 	groqSPI := groq.NewGroqClient(conf)
 	geminiSPI := google.NewGenerativeAIClient(ctx, conf)
 	openaiSPI := openaispi.NewOpenAIClient(conf)
+	mistralSPI := mistral.NewMistralClient(conf)
 
 	asrProviders := map[string]AsrSpi{
 		openai.Whisper1: openaiSPI,
@@ -86,6 +88,13 @@ func NewSPIRegistry(ctx context.Context, conf *config.Config) *SPIRegistry {
 		"llama3-8b-8192":         groqSPI,
 		"llama3-70b-8192":        groqSPI,
 		"mixtral-8x7b-32768":     groqSPI,
+		"open-mixtral-7b":        mistralSPI,
+		"open-mixtral-8x7b":      mistralSPI,
+		"open-mixtral-8x22b":     mistralSPI,
+		"mistral-small-latest":   mistralSPI,
+		"mistral-medium-latest":  mistralSPI,
+		"mistral-large-latest":   mistralSPI,
+		"codestral-latest":       mistralSPI,
 	}
 	return &SPIRegistry{
 		conf:         conf,
