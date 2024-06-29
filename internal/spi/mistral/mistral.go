@@ -23,15 +23,12 @@ func (o *MistralClient) CreateChatCompletionStream(
 	ctx context.Context,
 	request *openai.ChatCompletionRequest,
 ) (stream *openai.ChatCompletionStream, err error) {
-	var messages []ChatMessage
-	params = &ChatRequestParams{}
-	_ = o.client.ChatStream(ctx, messages, params)
+	return nil, nil
 }
 
 func (o *MistralClient) CreateChatCompletion(
 	ctx context.Context,
 	request *openai.ChatCompletionRequest,
 ) (response *openai.ChatCompletionResponse, err error) {
-	resp, err := o.client.Chat(ctx, *request)
-	return &resp, err
+	return nil, nil
 }
