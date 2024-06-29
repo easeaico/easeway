@@ -31,3 +31,19 @@ func (o *OpenAIClient) CreateChatCompletion(
 	resp, err := o.client.CreateChatCompletion(ctx, *request)
 	return &resp, err
 }
+
+func (o *OpenAIClient) CreateTranscription(
+	ctx context.Context,
+	request *openai.AudioRequest,
+) (response *openai.AudioResponse, err error) {
+	resp, err := o.client.CreateTranscription(ctx, *request)
+	return &resp, err
+}
+
+func (o *OpenAIClient) CreateSpeech(
+	ctx context.Context,
+	request *openai.CreateSpeechRequest,
+) (response *openai.RawResponse, err error) {
+	resp, err := o.client.CreateSpeech(ctx, *request)
+	return &resp, err
+}

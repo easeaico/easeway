@@ -10,7 +10,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-type ModelSPI interface {
+type LlmSpi interface {
 	CreateChatCompletionStream(
 		ctx context.Context,
 		request *openai.ChatCompletionRequest,
@@ -22,9 +22,25 @@ type ModelSPI interface {
 	) (response *openai.ChatCompletionResponse, err error)
 }
 
+type AsrSpi interface {
+	CreateTranscription(
+		ctx context.Context,
+		request *openai.AudioRequest,
+	) (response *openai.AudioResponse, err error)
+}
+
+type TtsSpi interface {
+	CreateSpeech(
+		ctx context.Context,
+		request *openai.CreateSpeechRequest,
+	) (response *openai.RawResponse, err error)
+}
+
 type SPIRegistry struct {
-	conf      *config.Config
-	providers map[string]ModelSPI
+	conf         *config.Config
+	llmProviders map[string]LlmSpi
+	asrProviders map[string]AsrSpi
+	ttsProviders map[string]TtsSpi
 }
 
 func NewSPIRegistry(ctx context.Context, conf *config.Config) *SPIRegistry {
@@ -32,7 +48,17 @@ func NewSPIRegistry(ctx context.Context, conf *config.Config) *SPIRegistry {
 	geminiSPI := google.NewGenerativeAIClient(ctx, conf)
 	openaiSPI := openaispi.NewOpenAIClient(conf)
 
-	providers := map[string]ModelSPI{
+	asrProviders := map[string]AsrSpi{
+		openai.Whisper1: openaiSPI,
+	}
+
+	ttsProviders := map[string]TtsSpi{
+		string(openai.TTSModel1):      openaiSPI,
+		string(openai.TTSModel1HD):    openaiSPI,
+		string(openai.TTSModelCanary): openaiSPI,
+	}
+
+	llmProviders := map[string]LlmSpi{
 		"gpt-4-32k-0613":         openaiSPI,
 		"gpt-4-32k-0314":         openaiSPI,
 		"gpt-4-32k":              openaiSPI,
@@ -62,15 +88,21 @@ func NewSPIRegistry(ctx context.Context, conf *config.Config) *SPIRegistry {
 		"mixtral-8x7b-32768":     groqSPI,
 	}
 	return &SPIRegistry{
-		conf:      conf,
-		providers: providers,
+		conf:         conf,
+		llmProviders: llmProviders,
+		asrProviders: asrProviders,
+		ttsProviders: ttsProviders,
 	}
 }
 
-func (r SPIRegistry) LoadByModel(model string) ModelSPI {
-	return r.providers[model]
+func (r SPIRegistry) LoadByLlmModel(model string) LlmSpi {
+	return r.llmProviders[model]
 }
 
-func (r *SPIRegistry) AddModelSPI(model string, spi ModelSPI) {
-	r.providers[model] = spi
+func (r SPIRegistry) LoadByAsrModel(model string) AsrSpi {
+	return r.asrProviders[model]
+}
+
+func (r SPIRegistry) LoadByTtsModel(model string) TtsSpi {
+	return r.ttsProviders[model]
 }

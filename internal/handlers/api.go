@@ -39,6 +39,52 @@ func NewAPISvcHandler(spis *spi.SPIRegistry, queries *store.Queries) *APISvcHand
 	}
 }
 
+func (a *APISvcHandler) CreateTranslation(c echo.Context) error {
+	req := openai.AudioRequest{}
+	if err := c.Bind(&req); err != nil {
+		return c.String(http.StatusBadRequest, "bad request")
+	}
+
+	spi := a.spis.LoadByAsrModel(req.Model)
+	if spi == nil {
+		msg := fmt.Sprintf("unknown model name: %s", req.Model)
+		slog.Error(msg, slog.String("model", req.Model))
+		return c.String(http.StatusBadRequest, msg)
+	}
+
+	ctx := c.Request().Context()
+	resp, err := spi.CreateTranscription(ctx, &req)
+	if err != nil {
+		slog.Error("create transcription error", slog.String("model", req.Model))
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (a *APISvcHandler) CreateSpeech(c echo.Context) error {
+	req := openai.CreateSpeechRequest{}
+	if err := c.Bind(&req); err != nil {
+		return c.String(http.StatusBadRequest, "bad request")
+	}
+
+	spi := a.spis.LoadByTtsModel(string(req.Model))
+	if spi == nil {
+		msg := fmt.Sprintf("unknown model name: %s", req.Model)
+		slog.Error(msg, slog.String("model", string(req.Model)))
+		return c.String(http.StatusBadRequest, msg)
+	}
+
+	ctx := c.Request().Context()
+	resp, err := spi.CreateSpeech(ctx, &req)
+	if err != nil {
+		slog.Error("create transcription error", slog.String("model", string(req.Model)))
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
 func (a *APISvcHandler) CreateChatCompletion(c echo.Context) error {
 	startTime := time.Now().UnixMilli()
 
@@ -47,7 +93,7 @@ func (a *APISvcHandler) CreateChatCompletion(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
 
-	mspi := a.spis.LoadByModel(req.Model)
+	mspi := a.spis.LoadByLlmModel(req.Model)
 	if mspi == nil {
 		msg := fmt.Sprintf("unknown model name: %s", req.Model)
 		slog.Error(msg, slog.String("model", req.Model))
@@ -96,7 +142,7 @@ func (a *APISvcHandler) CreateChatCompletion(c echo.Context) error {
 	return nil
 }
 
-func (a *APISvcHandler) doChatCompletion(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.ModelSPI, promptTokens *int, completionTokens *int, c echo.Context) error {
+func (a *APISvcHandler) doChatCompletion(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.LlmSpi, promptTokens *int, completionTokens *int, c echo.Context) error {
 	resp, err := mspi.CreateChatCompletion(ctx, req)
 	if err != nil {
 		return err
@@ -107,7 +153,7 @@ func (a *APISvcHandler) doChatCompletion(ctx context.Context, req *openai.ChatCo
 	return c.JSON(http.StatusOK, resp)
 }
 
-func (a *APISvcHandler) doChatCompletionStream(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.ModelSPI, promptTokens *int, completionTokens *int, r *echo.Response) error {
+func (a *APISvcHandler) doChatCompletionStream(ctx context.Context, req *openai.ChatCompletionRequest, mspi spi.LlmSpi, promptTokens *int, completionTokens *int, r *echo.Response) error {
 	stream, err := mspi.CreateChatCompletionStream(ctx, req)
 	if err != nil {
 		return err
