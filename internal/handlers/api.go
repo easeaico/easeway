@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/easeaico/easeway/internal/spi"
@@ -18,6 +20,14 @@ import (
 )
 
 const APIKeyCtxKey = "APIKey"
+
+type SpeechRequest struct {
+	Model          openai.SpeechModel          `json:"model"`
+	Input          string                      `json:"input"`
+	Voice          openai.SpeechVoice          `json:"voice"`
+	ResponseFormat openai.SpeechResponseFormat `json:"response_format,omitempty"` // Optional, default to mp3
+	Speed          string                      `json:"speed,omitempty"`           // Optional, default to 1.0
+}
 
 type APISvcHandler struct {
 	spis    *spi.SPIRegistry
@@ -51,14 +61,21 @@ func (a *APISvcHandler) CreateTranscription(c echo.Context) error {
 		slog.Error("get form file error", slog.Any("error", err))
 		return c.String(http.StatusBadRequest, "bad request")
 	}
+	defer f.Close()
+
+	data, err := io.ReadAll(f)
+	if err != nil {
+		slog.Error("read form file error", slog.Any("error", err))
+		return c.String(http.StatusInternalServerError, "bad request")
+	}
 
 	req := openai.AudioRequest{
 		Model:    c.FormValue("model"),
-		FilePath: c.FormValue("file_name"),
-		Reader:   f,
+		FilePath: file.Filename,
+		Reader:   bytes.NewReader(data),
 		Prompt:   c.FormValue("prompt"),
 		Language: c.FormValue("language"),
-		Format:   openai.AudioResponseFormat(c.FormValue("format")),
+		Format:   openai.AudioResponseFormat(c.FormValue("response_format")),
 	}
 
 	spi := a.spis.LoadByAsrModel(req.Model)
@@ -68,6 +85,7 @@ func (a *APISvcHandler) CreateTranscription(c echo.Context) error {
 		return c.String(http.StatusBadRequest, msg)
 	}
 
+	slog.Info("before request", slog.Any("req", req))
 	resp, err := spi.CreateTranscription(c.Request().Context(), &req)
 	if err != nil {
 		slog.Error("create transcription error", slog.String("model", req.Model))
@@ -78,8 +96,9 @@ func (a *APISvcHandler) CreateTranscription(c echo.Context) error {
 }
 
 func (a *APISvcHandler) CreateSpeech(c echo.Context) error {
-	req := openai.CreateSpeechRequest{}
+	req := SpeechRequest{}
 	if err := c.Bind(&req); err != nil {
+		slog.Error("bind request  data error", slog.Any("error", err))
 		return c.String(http.StatusBadRequest, "bad request")
 	}
 
@@ -90,14 +109,54 @@ func (a *APISvcHandler) CreateSpeech(c echo.Context) error {
 		return c.String(http.StatusBadRequest, msg)
 	}
 
-	ctx := c.Request().Context()
-	resp, err := spi.CreateSpeech(ctx, &req)
+	var speed float64 = 0
+	if len(req.Speed) > 0 {
+		var err error
+		speed, err = strconv.ParseFloat(req.Speed, 64)
+		if err != nil {
+			slog.Error("create transcription error", slog.String("model", string(req.Model)))
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+	}
+
+	sreq := openai.CreateSpeechRequest{
+		Model:          req.Model,
+		Input:          req.Input,
+		Voice:          req.Voice,
+		ResponseFormat: req.ResponseFormat,
+		Speed:          speed,
+	}
+
+	resp, err := spi.CreateSpeech(c.Request().Context(), &sreq)
 	if err != nil {
 		slog.Error("create transcription error", slog.String("model", string(req.Model)))
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, resp)
+	hResp := c.Response()
+
+	// copy response headers
+	for key, vals := range resp.Header() {
+		for _, val := range vals {
+			hResp.Header().Add(key, val)
+		}
+	}
+
+	// write binary data
+	data, err := io.ReadAll(resp)
+	if err != nil {
+		slog.Error("read transcription resp error", slog.Any("resp", resp))
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	_, err = hResp.Write(data)
+	if err != nil {
+		slog.Error("read transcription resp error", slog.Any("resp", resp))
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	hResp.Flush()
+	return nil
 }
 
 func (a *APISvcHandler) CreateChatCompletion(c echo.Context) error {
