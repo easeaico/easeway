@@ -40,11 +40,26 @@ func NewAPISvcHandler(spis *spi.SPIRegistry, queries *store.Queries) *APISvcHand
 }
 
 func (a *APISvcHandler) CreateTranscription(c echo.Context) error {
-	req := openai.AudioRequest{}
-	if err := c.Bind(&req); err != nil {
+	file, err := c.FormFile("file")
+	if err != nil {
+		slog.Error("get form file error", slog.Any("error", err))
 		return c.String(http.StatusBadRequest, "bad request")
 	}
-	slog.Info("create transcription", slog.Any("req", req))
+
+	f, err := file.Open()
+	if err != nil {
+		slog.Error("get form file error", slog.Any("error", err))
+		return c.String(http.StatusBadRequest, "bad request")
+	}
+
+	req := openai.AudioRequest{
+		Model:    c.FormValue("model"),
+		FilePath: c.FormValue("file_name"),
+		Reader:   f,
+		Prompt:   c.FormValue("prompt"),
+		Language: c.FormValue("language"),
+		Format:   openai.AudioResponseFormat(c.FormValue("format")),
+	}
 
 	spi := a.spis.LoadByAsrModel(req.Model)
 	if spi == nil {
