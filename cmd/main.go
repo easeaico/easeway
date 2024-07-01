@@ -62,7 +62,7 @@ func main() {
 		},
 	}))
 	v1.POST("/chat/completions", apiHandler.CreateChatCompletion)
-	v1.POST("/audio/transcriptions", apiHandler.CreateTranslation)
+	v1.POST("/audio/transcriptions", apiHandler.CreateTranscription)
 	v1.POST("/audio/speech", apiHandler.CreateSpeech)
 
 	console := e.Group("/console", middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{

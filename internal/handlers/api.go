@@ -39,11 +39,12 @@ func NewAPISvcHandler(spis *spi.SPIRegistry, queries *store.Queries) *APISvcHand
 	}
 }
 
-func (a *APISvcHandler) CreateTranslation(c echo.Context) error {
+func (a *APISvcHandler) CreateTranscription(c echo.Context) error {
 	req := openai.AudioRequest{}
 	if err := c.Bind(&req); err != nil {
 		return c.String(http.StatusBadRequest, "bad request")
 	}
+	slog.Info("create transcription", slog.Any("req", req))
 
 	spi := a.spis.LoadByAsrModel(req.Model)
 	if spi == nil {
@@ -52,8 +53,7 @@ func (a *APISvcHandler) CreateTranslation(c echo.Context) error {
 		return c.String(http.StatusBadRequest, msg)
 	}
 
-	ctx := c.Request().Context()
-	resp, err := spi.CreateTranscription(ctx, &req)
+	resp, err := spi.CreateTranscription(c.Request().Context(), &req)
 	if err != nil {
 		slog.Error("create transcription error", slog.String("model", req.Model))
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
