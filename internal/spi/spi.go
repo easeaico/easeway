@@ -51,7 +51,7 @@ func NewSPIRegistry(ctx context.Context, conf *config.Config) *SPIRegistry {
 	mistralSPI := mistral.NewMistralClient(conf)
 
 	asrProviders := map[string]AsrSpi{
-		openai.Whisper1: groqSPI,
+		openai.Whisper1: openaiSPI,
 	}
 
 	ttsProviders := map[string]TtsSpi{
