@@ -34,3 +34,12 @@ func (o *GroqClient) CreateChatCompletion(
 	resp, err := o.client.CreateChatCompletion(ctx, *request)
 	return &resp, err
 }
+
+func (o *GroqClient) CreateTranscription(
+	ctx context.Context,
+	request *openai.AudioRequest,
+) (response *openai.AudioResponse, err error) {
+	request.Model = "whisper-large-v3"
+	resp, err := o.client.CreateTranscription(ctx, *request)
+	return &resp, err
+}
