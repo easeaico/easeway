@@ -1,0 +1,55 @@
+package user
+
+import (
+"github.com/easeaico/easeway/internal/views/layout"
+"github.com/easeaico/easeway/internal/views"
+)
+
+templ Login() {
+@layout.Base("登录") {
+<div class="signin-section auth-section">
+  <div class="curve-container">
+    <div class="curve-top"></div>
+    <div class="curve-bottom"></div>
+  </div><!--//curve-container-->
+  <div class="container">
+    <div class="single-col-max mx-auto over-curve px-5">
+      <div class="site-logo mb-4 text-center">
+        <a class="navbar-brand" href={ views.RenderSafeURL("") }>
+          <img class="logo-icon me-2" src={ views.RenderURL("assets/images/site-logo.svg") } alt="logo" />
+        </a>
+      </div>
+      <div class="auth-wrapper mx-auto">
+        <h2 class="auth-heading text-center mb-4">登录你的账号</h2>
+        <div class="auth-form-container text-start mx-auto">
+          <form class="auth-form signup-form" hx-post={ views.RenderURL("user/login") } hx-replace-url="true">
+            <div class="email mb-3">
+              <label class="sr-only" for="signin-email">邮箱</label>
+              <input id="signin-email" name="signin-email" type="email" class="form-control signin-email"
+                placeholder="邮箱" required="required" />
+            </div><!--//email-->
+            <div class="password mb-3">
+              <div class="extra mt-2 position-relative">
+                <div class="mb-0">
+                  <label class="sr-only" for="signin-password">验证码</label>
+                  <input id="signin-verifycode" name="signin-verifycode" type="text"
+                    class="form-control signin-password w-75" placeholder="验证码" />
+                </div>
+                <div class="forgotten-password">
+                  <button type="submit" name="signin-action" value="code" class="btn theme-btn mx-auto">发送</button>
+                </div>
+              </div>
+            </div>
+            <div class="text-center">
+              <button type="submit" name="signin-action" value="login"
+                class="btn btn-primary btn-submit theme-btn mx-auto">登录</button>
+            </div>
+          </form>
+        </div><!--//auth-form-container-->
+        <div class="auth-footer py-5 mt-5 text-center"></div>
+      </div><!--//auth-wrapper-->
+    </div><!--//single-col-max-->
+  </div><!--//container-->
+</div><!--//signin-section-->
+}
+}

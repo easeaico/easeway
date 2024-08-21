@@ -1,0 +1,61 @@
+package console
+
+import (
+	"github.com/easeaico/easeway/internal/views/layout"
+	"github.com/easeaico/easeway/internal/views/partials"
+	"github.com/easeaico/easeway/internal/views"
+)
+
+templ CreateKeyPage(username string, fromProtected bool) {
+	@layout.Base("控制台") {
+		@partials.Navbar(username, fromProtected)
+		<section class="pricing-header page-header over-curve py-3 py-md-5">
+			<div class="signin-section auth-section">
+				<div class="curve-container">
+					<div class="curve-top"></div>
+					<div class="curve-bottom"></div>
+				</div><!--//curve-container-->
+				<div class="container">
+					<div class="single-col-max mx-auto over-curve px-5">
+						<div class="site-logo mb-4 text-center">
+							<a class="navbar-brand" href={ views.RenderSafeURL("") }>
+								<img class="logo-icon me-2" src={ views.RenderURL("assets/images/site-logo.svg") } alt="logo"/>
+							</a>
+						</div>
+						<div class="auth-wrapper mx-auto">
+							<h2 class="auth-heading text-center mb-4">创建你的密钥</h2>
+							<div class="auth-form-container text-start mx-auto">
+								<form
+									class="auth-form signup-form"
+									hx-post={ views.RenderURL("console/generate_key") }
+									hx-replace-url="true"
+								>
+									<div class="email mb-3">
+										<label class="sr-only" for="signin-email">密钥名称</label>
+										<input
+											id="signin-email"
+											name="key_name"
+											type="text"
+											class="form-control signin-email"
+											placeholder="密钥名称"
+											required="required"
+										/>
+									</div><!--//email-->
+									<div class="text-center">
+										<button
+											type="submit"
+											name="signin-action"
+											value="login"
+											class="btn btn-primary btn-submit theme-btn mx-auto"
+										>创建</button>
+									</div>
+								</form>
+							</div><!--//auth-form-container-->
+							<div class="auth-footer py-5 mt-5 text-center"></div>
+						</div><!--//auth-wrapper-->
+					</div><!--//single-col-max-->
+				</div><!--//container-->
+			</div><!--//signin-section-->
+		</section>
+	}
+}
