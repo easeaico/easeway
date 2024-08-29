@@ -30,7 +30,8 @@ func main() {
 	queries := store.New(pool)
 
 	homeHandler := handlers.NewHomeHandler(queries)
-	apiHandler := handlers.NewAPISvcHandler(spis, queries)
+	openaiApiHandler := handlers.NewAPISvcHandler(spis, queries)
+	anthropicApiHandler := handlers.NewAthropicApiHandler()
 	userHandler := handlers.NewUserHandler(conf, queries)
 	consoleHandler := handlers.NewConsoleHandler(queries)
 	supportHandler := handlers.NewSupportHandler()
@@ -61,9 +62,10 @@ func main() {
 			return apiKey.Status == 0, nil
 		},
 	}))
-	v1.POST("/chat/completions", apiHandler.CreateChatCompletion)
-	v1.POST("/audio/transcriptions", apiHandler.CreateTranscription)
-	v1.POST("/audio/speech", apiHandler.CreateSpeech)
+	v1.POST("/chat/completions", openaiApiHandler.CreateChatCompletion)
+	v1.POST("/audio/transcriptions", openaiApiHandler.CreateTranscription)
+	v1.POST("/audio/speech", openaiApiHandler.CreateSpeech)
+	v1.POST("/messages", anthropicApiHandler.CreateMessages)
 
 	console := e.Group("/console", middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		KeyLookup: "cookie:session",
