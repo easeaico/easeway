@@ -17,11 +17,10 @@ import (
 )
 
 func main() {
-	var confFile string
-	flag.StringVar(&confFile, "f", "config.yaml", "config file path")
+	confFile := flag.String("f", "config.yaml", "config file path")
 	flag.Parse()
 
-	conf := config.NewConfig(confFile)
+	conf := config.NewConfig(*confFile)
 	ctx := context.Background()
 	spis := spi.NewSPIRegistry(ctx, conf)
 
@@ -29,21 +28,27 @@ func main() {
 	defer pool.Close()
 	queries := store.New(pool)
 
-	homeHandler := handlers.NewHomeHandler(queries)
-	openaiApiHandler := handlers.NewAPISvcHandler(spis, queries)
-	anthropicApiHandler := handlers.NewAthropicApiHandler()
-	userHandler := handlers.NewUserHandler(conf, queries)
-	consoleHandler := handlers.NewConsoleHandler(queries)
-	supportHandler := handlers.NewSupportHandler()
-	memberHandler := handlers.NewMemberHandler()
-
 	e := echo.New()
 	e.File("/favicon.ico", "assets/images/favicon.ico")
 	e.Static("/assets", "assets")
 
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
+	e.Use(middleware.Logger(), middleware.Recover(), middleware.CORS())
+
+	setupRoutes(e, conf, spis, queries)
+
+	if err := e.Start(fmt.Sprintf("%s:%d", conf.Server.IP, conf.Server.Port)); err != nil {
+		e.Logger.Fatal(err)
+	}
+}
+
+func setupRoutes(e *echo.Echo, conf *config.Config, spis *spi.SPIRegistry, queries *store.Queries) {
+	homeHandler := handlers.NewHomeHandler(queries)
+	openaiApiHandler := handlers.NewAPISvcHandler(spis, queries)
+	anthropicApiHandler := handlers.NewAthropicApiHandler(conf, queries)
+	userHandler := handlers.NewUserHandler(conf, queries)
+	consoleHandler := handlers.NewConsoleHandler(queries)
+	supportHandler := handlers.NewSupportHandler()
+	memberHandler := handlers.NewMemberHandler()
 
 	e.GET("/", homeHandler.HomePage)
 	e.GET("/support", supportHandler.HomePage)
@@ -51,36 +56,26 @@ func main() {
 
 	v1 := e.Group("/v1", middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		Validator: func(key string, c echo.Context) (bool, error) {
-			ctx := c.Request().Context()
-			apiKey, err := queries.GetAPIKey(ctx, key)
+			apiKey, err := queries.GetAPIKey(c.Request().Context(), key)
 			if err != nil {
 				slog.Error("api key not found", slog.String("key", key), slog.Any("error", err))
 				return false, err
 			}
-
 			c.Set(handlers.APIKeyCtxKey, &apiKey)
 			return apiKey.Status == 0, nil
 		},
 	}))
 	v1.POST("/chat/completions", openaiApiHandler.CreateChatCompletion)
 	v1.POST("/audio/transcriptions", openaiApiHandler.CreateTranscription)
-	v1.POST("/audio/speech", openaiApiHandler.CreateSpeech)
 	v1.POST("/messages", anthropicApiHandler.CreateMessages)
 
 	console := e.Group("/console", middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		KeyLookup: "cookie:session",
 		Validator: func(sessionID string, c echo.Context) (bool, error) {
-			user, err := queries.GetUserBySessionID(c.Request().Context(), pgtype.Text{
-				String: sessionID,
-				Valid:  true,
-			})
+			user, err := queries.GetUserBySessionID(c.Request().Context(), pgtype.Text{String: sessionID, Valid: true})
 			if err != nil {
 				slog.Error("get user by session id error", slog.Any("error", err))
-				if strings.HasPrefix(c.Request().URL.Path, "/console/") {
-					return false, err
-				} else {
-					return true, err
-				}
+				return !strings.HasPrefix(c.Request().URL.Path, "/console/"), err
 			}
 			c.Set("user", &user)
 			return true, nil
@@ -94,9 +89,4 @@ func main() {
 	user := e.Group("/user")
 	user.GET("/login", userHandler.LoginPage)
 	user.POST("/login", userHandler.DoLogin)
-
-	err := e.Start(fmt.Sprintf("%s:%d", conf.Server.IP, conf.Server.Port))
-	if err != nil {
-		e.Logger.Fatal(err)
-	}
 }

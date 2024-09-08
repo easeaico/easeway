@@ -23,6 +23,10 @@ type Mistral struct {
 	ApiKey string `yaml:"api_key"`
 }
 
+type Anthropic struct {
+	ApiKey string `yaml:"api_key"`
+}
+
 type Server struct {
 	IP   string `yaml:"ip"`
 	Port int    `yaml:"port"`
@@ -36,14 +40,15 @@ type Email struct {
 	ProviderPort int    `yaml:"provider_port"`
 }
 type Config struct {
-	Email        Email   `yaml:"email"`
-	Gemini       Gemini  `yaml:"gemini"`
-	OpenAI       OpenAI  `yaml:"openai"`
-	Groq         Groq    `yaml:"groq"`
-	Mistral      Mistral `yaml:"mistral"`
-	DBConnection string  `yaml:"db_connection"`
-	Server       Server  `yaml:"server"`
-	Site         Site    `yaml:"site"`
+	Email        Email     `yaml:"email"`
+	Gemini       Gemini    `yaml:"gemini"`
+	OpenAI       OpenAI    `yaml:"openai"`
+	Groq         Groq      `yaml:"groq"`
+	Mistral      Mistral   `yaml:"mistral"`
+	Anthropic    Anthropic `yaml:"antropic"`
+	DBConnection string    `yaml:"db_connection"`
+	Server       Server    `yaml:"server"`
+	Site         Site      `yaml:"site"`
 }
 
 type Site struct {
