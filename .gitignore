@@ -23,3 +23,5 @@ conf/
 db/
 tmp/
 easeway.tar
+
+dist/

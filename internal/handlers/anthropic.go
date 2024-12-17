@@ -68,7 +68,7 @@ func (a *AnthropicApiHandler) CreateMessages(c echo.Context) error {
 	if err != nil {
 		var e *anthropic.APIError
 		if errors.As(err, &e) {
-			slog.Error("Messages stream error, type: %s, message: %s", e.Type, e.Message)
+			slog.Error("Messages stream error, type: %s, message: %s", string(e.Type), e.Message)
 		} else {
 			slog.Error("do chat completion error", slog.Any("error", err))
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
